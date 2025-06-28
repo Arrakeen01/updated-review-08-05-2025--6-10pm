@@ -206,11 +206,16 @@ class SupabaseService {
         .from('documents')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Supabase get error:', error);
         throw error;
+      }
+      
+      if (!data) {
+        console.log('Document not found in Supabase:', id);
+        return null;
       }
       
       return this.mapSupabaseToStoredDocument(data);
@@ -388,7 +393,7 @@ class SupabaseService {
           .from('templates')
           .select('id')
           .eq('id', template.id)
-          .single();
+          .maybeSingle();
 
         if (!existingTemplate) {
           await this.saveTemplate(template);
@@ -413,7 +418,7 @@ class SupabaseService {
           .from('documents')
           .select('id')
           .eq('id', document.id)
-          .single();
+          .maybeSingle();
 
         if (!existingDocument) {
           await this.saveDocument(document);
