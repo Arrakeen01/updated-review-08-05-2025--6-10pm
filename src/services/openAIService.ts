@@ -27,7 +27,8 @@ interface TemplateMatchResult {
 }
 
 class OpenAIService {
-  private apiKey = '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';
+  // Use environment variable with fallback
+  private apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
   private baseUrl = 'https://api.openai.com/v1';
 
   async analyzeDocument(
@@ -36,6 +37,12 @@ class OpenAIService {
     userId: string
   ): Promise<OpenAIAnalysisResult> {
     try {
+      // Check if API key is available
+      if (!this.apiKey || this.apiKey.trim() === '') {
+        console.warn('OpenAI API key not configured, using fallback analysis');
+        return this.createFallbackAnalysis(extractedText, availableTemplates, userId);
+      }
+
       // Log analysis start
       securityService.logAction(
         userId,
@@ -107,6 +114,11 @@ class OpenAIService {
     templates: DocumentType[]
   ): Promise<DocumentType | null> {
     try {
+      // Check API key again
+      if (!this.apiKey || this.apiKey.trim() === '') {
+        return this.findBestTemplateFallback(text, templates);
+      }
+
       const templateDescriptions = templates.map(template => ({
         id: template.id,
         name: template.name,
@@ -150,7 +162,8 @@ Respond with valid JSON only:
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        console.warn(`OpenAI API error: ${response.status} ${response.statusText}`);
+        return this.findBestTemplateFallback(text, templates);
       }
 
       const data = await response.json();
@@ -163,9 +176,35 @@ Respond with valid JSON only:
       return templates.find(t => t.id === analysis.bestTemplateId) || null;
     } catch (error) {
       console.error('Template matching failed:', error);
-      // Return first template as fallback
-      return templates.length > 0 ? templates[0] : null;
+      // Return fallback template matching
+      return this.findBestTemplateFallback(text, templates);
     }
+  }
+
+  private findBestTemplateFallback(text: string, templates: DocumentType[]): DocumentType | null {
+    if (templates.length === 0) return null;
+
+    const textLower = text.toLowerCase();
+    let bestTemplate = templates[0];
+    let bestScore = 0;
+
+    for (const template of templates) {
+      const keywords = this.getTemplateKeywords(template);
+      let score = 0;
+
+      for (const keyword of keywords) {
+        if (textLower.includes(keyword.toLowerCase())) {
+          score++;
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestTemplate = template;
+      }
+    }
+
+    return bestTemplate;
   }
 
   private async extractFieldsForTemplate(
@@ -180,6 +219,11 @@ Respond with valid JSON only:
     fieldMappingDetails: FieldMappingDetail[];
   }> {
     try {
+      // Check API key
+      if (!this.apiKey || this.apiKey.trim() === '') {
+        return this.createFallbackFieldExtraction(text, template);
+      }
+
       const templateFields = template.template.map(field => ({
         id: field.id,
         label: field.label,
@@ -237,7 +281,8 @@ Extract data for every field. Use exact field IDs. Respond with valid JSON only:
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        console.warn(`OpenAI API error: ${response.status} ${response.statusText}`);
+        return this.createFallbackFieldExtraction(text, template);
       }
 
       const data = await response.json();
@@ -324,7 +369,7 @@ Extract data for every field. Use exact field IDs. Respond with valid JSON only:
     return {
       documentType: bestTemplate.name,
       confidence,
-      reasoning: 'Fallback analysis using keyword matching and pattern recognition',
+      reasoning: 'Fallback analysis using keyword matching and pattern recognition (OpenAI API unavailable)',
       extractedFields,
       templateMatch: bestTemplate,
       fieldMappingDetails: []
@@ -346,7 +391,7 @@ Extract data for every field. Use exact field IDs. Respond with valid JSON only:
     return {
       documentType: template.name,
       confidence: 0.6,
-      reasoning: 'Fallback field extraction using pattern matching',
+      reasoning: 'Fallback field extraction using pattern matching (OpenAI API unavailable)',
       extractedFields,
       fieldMappingDetails: []
     };
@@ -419,14 +464,20 @@ Extract data for every field. Use exact field IDs. Respond with valid JSON only:
     
     // Add specific keywords based on template ID
     switch (template.id) {
-      case 'transfer':
-        keywords.push('transfer', 'posting', 'station', 'order');
+      case 'earned_leave':
+        keywords.push('leave', 'earned', 'vacation', 'application');
         break;
-      case 'award':
-        keywords.push('award', 'certificate', 'recognition', 'medal');
+      case 'medical_leave':
+        keywords.push('medical', 'sick', 'health', 'doctor', 'hospital');
         break;
-      case 'complaint':
-        keywords.push('complaint', 'grievance', 'disciplinary');
+      case 'punishment_letter':
+        keywords.push('punishment', 'disciplinary', 'violation', 'misconduct');
+        break;
+      case 'reward_letter':
+        keywords.push('reward', 'award', 'recognition', 'commendation');
+        break;
+      case 'probation_letter':
+        keywords.push('probation', 'trial', 'evaluation', 'assessment');
         break;
     }
     
@@ -476,13 +527,28 @@ Extract data for every field. Use exact field IDs. Respond with valid JSON only:
 
   async checkServiceHealth(): Promise<boolean> {
     try {
+      // Check if API key is configured
+      if (!this.apiKey || this.apiKey.trim() === '') {
+        console.warn('OpenAI API key not configured');
+        return false;
+      }
+
+      // Simple health check - try to list models
       const response = await fetch(`${this.baseUrl}/models`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
         }
       });
       
-      return response.ok;
+      const isHealthy = response.ok;
+      
+      if (!isHealthy) {
+        console.warn('OpenAI API health check failed:', response.status, response.statusText);
+      }
+      
+      return isHealthy;
     } catch (error) {
       console.error('OpenAI service health check failed:', error);
       return false;
