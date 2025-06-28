@@ -10,12 +10,20 @@ interface UploadedFile {
 }
 
 class UploadThingService {
+  // UploadThing Configuration
   private apiKey = 'eyJhcGlLZXkiOiJza19saXZlXzc5Y2ExNjBmNjJhNDg2YjYyYzVmZmIxNmYzODQyMjgwMzVmNzVlNDkwYjVlZjg3MGNkY2Q2NjE0OTNkMjJkYTUiLCJhcHBJZCI6Inc3N2oyZXRqaDEiLCJyZWdpb25zIjpbInNlYTEiXX0=';
   private baseUrl = 'https://api.uploadthing.com';
   private uploadedFiles: Map<string, UploadedFile> = new Map();
 
   async generateUploadUrl(): Promise<string> {
     try {
+      // Check if API key is configured
+      if (!this.apiKey || this.apiKey === 'your-uploadthing-api-key') {
+        console.warn('UploadThing API key not configured, using mock URL');
+        const uploadId = this.generateId('upload');
+        return `${window.location.origin}/mobile-upload/${uploadId}`;
+      }
+
       // In a real implementation, this would call UploadThing API to generate a presigned URL
       const uploadId = this.generateId('upload');
       const uploadUrl = `${this.baseUrl}/upload/${uploadId}`;
