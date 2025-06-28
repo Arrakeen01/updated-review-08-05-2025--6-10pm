@@ -15,7 +15,7 @@ interface DocumentContextType {
 
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
-// Updated mock document types with the new punishment letter template
+// Updated mock document types with the new reward letter template
 const mockDocumentTypes: DocumentType[] = [
   {
     id: 'earned_leave',
@@ -108,19 +108,14 @@ const mockDocumentTypes: DocumentType[] = [
     name: 'Reward Letter',
     category: 'Recognition',
     template: [
-      { id: 'recipientName', label: 'Recipient Name', type: 'text', required: true },
-      { id: 'badgeNumber', label: 'Badge Number', type: 'text', required: true },
-      { id: 'rank', label: 'Rank', type: 'select', required: true, options: ['Constable', 'Head Constable', 'Sub-Inspector', 'Inspector', 'DSP', 'SP'] },
-      { id: 'department', label: 'Department', type: 'text', required: true },
-      { id: 'awardType', label: 'Type of Award', type: 'select', required: true, options: ['Gallantry Award', 'Service Medal', 'Commendation Certificate', 'Excellence Award', 'Bravery Award'] },
-      { id: 'achievementDescription', label: 'Achievement Description', type: 'textarea', required: true },
-      { id: 'achievementDate', label: 'Achievement Date', type: 'date', required: true },
-      { id: 'awardDate', label: 'Award Date', type: 'date', required: true },
-      { id: 'issuingAuthority', label: 'Issuing Authority', type: 'text', required: true },
-      { id: 'witnessNames', label: 'Witness Names', type: 'textarea', required: false },
-      { id: 'monetaryValue', label: 'Monetary Value (if applicable)', type: 'number', required: false },
-      { id: 'ceremonyDetails', label: 'Award Ceremony Details', type: 'textarea', required: false },
-      { id: 'citation', label: 'Citation', type: 'textarea', required: true }
+      { id: 'rcNo', label: 'R c No', type: 'text', required: true },
+      { id: 'hooNo', label: 'H. O. O No', type: 'text', required: true },
+      { id: 'date', label: 'Date', type: 'date', required: true },
+      { id: 'issuedBy', label: 'Issued By', type: 'text', required: true },
+      { id: 'subject', label: 'Subject', type: 'text', required: true },
+      { id: 'referenceOrders', label: 'Reference Orders', type: 'textarea', required: true },
+      { id: 'rewardDetails', label: 'Reward Details', type: 'textarea', required: true },
+      { id: 'reasonForReward', label: 'Reason for Reward', type: 'textarea', required: true }
     ],
     validationRules: []
   }
