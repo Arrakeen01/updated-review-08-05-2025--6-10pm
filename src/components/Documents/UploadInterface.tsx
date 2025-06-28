@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, QrCode, Camera, FileImage, Loader2, AlertCircle, CheckCircle, Cpu, Database, Image as ImageIcon, Box, Zap, Eye, Edit3, Save, X, Info, TestTube, FolderSync as Sync } from 'lucide-react';
+import { Upload, QrCode, Camera, FileImage, Loader2, AlertCircle, CheckCircle, Cpu, Database, Image as ImageIcon, Box, Zap, Eye, Edit3, Save, X, Info, TestTube, FolderSync as Sync, FileText } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDocuments } from '../../contexts/DocumentContext';
 import { azureAIService, AzureAIResult } from '../../services/azureAIService';
@@ -133,8 +133,18 @@ export function UploadInterface() {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      
+      // Create preview URL based on file type
+      if (file.type === 'application/pdf') {
+        // For PDFs, we'll use the file URL directly
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      } else {
+        // For images, create object URL
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      }
+      
       processDocument(file);
     }
   };
@@ -416,6 +426,49 @@ export function UploadInterface() {
     }
   };
 
+  const renderDocumentPreview = () => {
+    if (!selectedFile || !previewUrl) return null;
+
+    const isPDF = selectedFile.type === 'application/pdf';
+
+    return (
+      <div className="border rounded-lg overflow-hidden relative bg-gray-50">
+        <div className="relative w-full h-96">
+          {isPDF ? (
+            <div className="w-full h-full flex flex-col">
+              {/* PDF Header */}
+              <div className="bg-gray-800 text-white px-4 py-2 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4" />
+                  <span className="text-sm font-medium">{selectedFile.name}</span>
+                </div>
+                <div className="text-xs text-gray-300">
+                  {(selectedFile.size / 1024).toFixed(1)} KB
+                </div>
+              </div>
+              
+              {/* PDF Viewer */}
+              <div className="flex-1 bg-white">
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full border-0"
+                  title="PDF Preview"
+                  style={{ minHeight: '350px' }}
+                />
+              </div>
+            </div>
+          ) : (
+            <img
+              src={previewUrl}
+              alt="Document preview"
+              className="w-full h-full object-contain bg-gray-50"
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Service Status */}
@@ -535,16 +588,10 @@ export function UploadInterface() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Image Preview */}
+            {/* Document Preview */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Document Preview</h3>
-              <div className="border rounded-lg overflow-hidden relative">
-                <img
-                  src={previewUrl}
-                  alt="Document preview"
-                  className="w-full h-96 object-contain bg-gray-50"
-                />
-              </div>
+              {renderDocumentPreview()}
               
               <div className="flex space-x-2">
                 <button
