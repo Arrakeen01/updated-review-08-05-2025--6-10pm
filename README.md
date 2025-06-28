@@ -97,12 +97,7 @@ If using Supabase for cloud storage:
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
 2. Copy your project URL and anon key to the `.env` file
-3. Run the database migrations:
-
-```bash
-# The migrations will be automatically applied when you first run the app
-# Or you can apply them manually in the Supabase SQL editor
-```
+3. The database schema will be automatically created when you first run the application
 
 ## 🚀 Getting Started
 
@@ -299,6 +294,28 @@ For technical support or questions:
 - **Workflow Automation**: Automated document routing
 - **Integration APIs**: Third-party system integration
 - **Mobile App**: Native mobile application
+
+## 🔍 Stamp and Signature Verification
+
+The system includes advanced stamp and signature verification capabilities:
+
+### Stamp Verification
+- Automatic detection of official stamps in documents
+- Comparison against a database of approved stamps
+- Validation of stamp positioning and clarity
+- Support for multiple stamp types (department stamps, officer stamps)
+
+### Signature Verification
+- Detection of signature elements in documents
+- Validation of signature presence in required fields
+- Support for digital signatures and handwritten signatures
+- Audit trail for signature verification
+
+### Verification Process
+1. Document is scanned for stamp and signature elements
+2. Detected elements are compared against reference database
+3. Verification status is displayed (Present/Absent)
+4. Results are stored with the document for audit purposes
 
 ---
 
