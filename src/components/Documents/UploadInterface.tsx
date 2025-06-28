@@ -10,7 +10,7 @@ import { supabaseService } from '../../services/supabaseService';
 
 export function UploadInterface() {
   const { user } = useAuth();
-  const { documentTypes, addDocument } = useDocuments();
+  const { documentTypes, addDocument, isLoading: contextLoading } = useDocuments();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -27,12 +27,25 @@ export function UploadInterface() {
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [databaseReady, setDatabaseReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     checkServiceHealth();
     loadTemporaryDocuments();
+    checkDatabaseStatus();
   }, []);
+
+  const checkDatabaseStatus = async () => {
+    try {
+      await databaseService.waitForReady();
+      setDatabaseReady(true);
+      console.log('Database is ready');
+    } catch (error) {
+      console.error('Database initialization failed:', error);
+      setDatabaseReady(false);
+    }
+  };
 
   const checkServiceHealth = async () => {
     try {
@@ -47,7 +60,8 @@ export function UploadInterface() {
       console.log('Service Health Check Results:', {
         azure: azureHealth,
         openAI: openAIHealth,
-        supabase: supabaseHealthCheck
+        supabase: supabaseHealthCheck,
+        database: databaseReady
       });
     } catch (error) {
       console.error('Service health check failed:', error);
@@ -69,7 +83,7 @@ export function UploadInterface() {
       console.log('Connection test result:', connectionOk);
       
       if (!connectionOk) {
-        alert('Supabase connection failed. Please check your environment variables and database setup.');
+        alert('Supabase connection failed. Please check your credentials in supabaseService.ts and database setup.');
         return;
       }
       
@@ -151,6 +165,18 @@ export function UploadInterface() {
 
   const processDocument = async (file: File) => {
     if (!user) return;
+    
+    // Check if database is ready
+    if (!databaseReady) {
+      alert('Database is not ready. Please wait for initialization to complete.');
+      return;
+    }
+
+    // Check if templates are loaded
+    if (documentTypes.length === 0) {
+      alert('Document templates are not loaded. Please wait for templates to load.');
+      return;
+    }
     
     setIsProcessing(true);
     setProcessingStage('Initializing Azure AI processing...');
@@ -241,6 +267,12 @@ export function UploadInterface() {
 
   const handleApproveDocument = async () => {
     if (!selectedTempDoc || !user || isSaving) return;
+
+    // Check if database is ready
+    if (!databaseReady) {
+      alert('Database is not ready. Please wait for initialization to complete.');
+      return;
+    }
 
     setIsSaving(true);
     
@@ -469,10 +501,22 @@ export function UploadInterface() {
     );
   };
 
+  // Show loading state if context is loading
+  if (contextLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading document templates...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Service Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`rounded-lg p-4 ${getServiceStatusColor(azureServiceHealth)}`}>
           <div className="flex items-center">
             <Zap className={`h-5 w-5 mr-2 ${getServiceStatusIcon(azureServiceHealth)}`} />
@@ -542,6 +586,20 @@ export function UploadInterface() {
             </div>
           </div>
         </div>
+
+        <div className={`rounded-lg p-4 ${getServiceStatusColor(databaseReady)}`}>
+          <div className="flex items-center">
+            <Database className={`h-5 w-5 mr-2 ${getServiceStatusIcon(databaseReady)}`} />
+            <div>
+              <p className={`text-sm font-medium ${getServiceStatusIcon(databaseReady).replace('text-', 'text-')}`}>
+                Database: {databaseReady ? 'Ready' : 'Initializing'}
+              </p>
+              <p className={`text-xs ${getServiceStatusIcon(databaseReady).replace('text-', 'text-').replace('600', '700')}`}>
+                {databaseReady ? `${documentTypes.length} templates loaded` : 'Loading templates...'}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Upload Section */}
@@ -562,15 +620,15 @@ export function UploadInterface() {
               <p className="mt-1 text-sm text-gray-500">
                 Select a document for intelligent processing with template mapping and database sync
               </p>
-              {azureServiceHealth && openAIServiceHealth && (
+              {azureServiceHealth && openAIServiceHealth && databaseReady && (
                 <p className="mt-1 text-xs text-blue-600">
-                  Azure AI OCR + OpenAI analysis + Automatic template field mapping + Supabase sync
+                  Azure AI OCR + OpenAI analysis + Automatic template field mapping + Database sync
                 </p>
               )}
               <div className="mt-6 flex justify-center space-x-4">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={!azureServiceHealth || !openAIServiceHealth}
+                  disabled={!azureServiceHealth || !openAIServiceHealth || !databaseReady}
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Upload className="h-4 w-4 mr-2" />
@@ -891,7 +949,7 @@ export function UploadInterface() {
                   <div className="flex space-x-3 pt-4 border-t">
                     <button
                       onClick={handleApproveDocument}
-                      disabled={isSaving}
+                      disabled={isSaving || !databaseReady}
                       className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSaving ? (

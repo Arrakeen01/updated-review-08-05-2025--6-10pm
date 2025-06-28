@@ -201,12 +201,55 @@ class SparkDatabase extends Dexie {
 
 class DatabaseService {
   private db: SparkDatabase;
-  private useSupabase: boolean = true; // Re-enabled Supabase
+  private useSupabase: boolean = true;
   private syncInProgress: boolean = false;
+  private initialized: boolean = false;
 
   constructor() {
     this.db = new SparkDatabase();
-    this.initializeSupabaseSync();
+    this.initializeDatabase();
+  }
+
+  private async initializeDatabase() {
+    try {
+      console.log('Initializing database...');
+      
+      // Open the database
+      await this.db.open();
+      console.log('IndexedDB opened successfully');
+      
+      // Initialize built-in templates
+      await this.initializeBuiltInTemplates();
+      
+      // Initialize Supabase sync
+      await this.initializeSupabaseSync();
+      
+      this.initialized = true;
+      console.log('Database initialization complete');
+    } catch (error) {
+      console.error('Database initialization failed:', error);
+      this.initialized = false;
+    }
+  }
+
+  private async initializeBuiltInTemplates() {
+    try {
+      console.log('Initializing built-in templates...');
+      
+      const builtInTemplates = this.getBuiltInTemplates();
+      
+      for (const template of builtInTemplates) {
+        const existing = await this.db.templates.where('id').equals(template.id).first();
+        if (!existing) {
+          await this.db.templates.add(template);
+          console.log(`Added built-in template: ${template.name}`);
+        }
+      }
+      
+      console.log('Built-in templates initialized');
+    } catch (error) {
+      console.error('Failed to initialize built-in templates:', error);
+    }
   }
 
   private async initializeSupabaseSync() {
@@ -260,9 +303,105 @@ class DatabaseService {
     }
   }
 
+  private getBuiltInTemplates(): DocumentType[] {
+    return [
+      {
+        id: 'earned_leave',
+        name: 'Earned Leave Letter',
+        category: 'Leave',
+        template: [
+          { id: 'rcNo', label: 'R c No.', type: 'text', required: true },
+          { id: 'hodNo', label: 'H.O.D No.', type: 'text', required: true },
+          { id: 'pcNo', label: 'PC No. or HC No or ARSI No', type: 'text', required: false },
+          { id: 'name', label: 'Name', type: 'text', required: true },
+          { id: 'date', label: 'Date', type: 'date', required: true },
+          { id: 'numberOfDays', label: 'Number of Days', type: 'number', required: true },
+          { id: 'leaveFromDate', label: 'Leave From Date', type: 'date', required: true },
+          { id: 'leaveToDate', label: 'Leave To Date', type: 'date', required: true },
+          { id: 'leaveReason', label: 'Leave Reason', type: 'textarea', required: true }
+        ],
+        validationRules: []
+      },
+      {
+        id: 'medical_leave',
+        name: 'Medical Leave Letter',
+        category: 'Leave',
+        template: [
+          { id: 'name', label: 'Name', type: 'text', required: true },
+          { id: 'dateOfSubmission', label: 'Date of Submission', type: 'date', required: true },
+          { id: 'coyBelongsTo', label: 'Coy Belongs to', type: 'text', required: true },
+          { id: 'rank', label: 'Rank', type: 'text', required: true },
+          { id: 'leaveReason', label: 'Leave Reason', type: 'textarea', required: true },
+          { id: 'phoneNumber', label: 'Phone Number', type: 'text', required: true },
+          { id: 'unitAndDistrict', label: 'Unit and District', type: 'text', required: true }
+        ],
+        validationRules: []
+      },
+      {
+        id: 'probation_letter',
+        name: 'Probation Letter',
+        category: 'Administrative',
+        template: [
+          { id: 'serviceClassCategory', label: 'Service Class Category', type: 'text', required: true },
+          { id: 'nameOfProbationer', label: 'Name of Probationer', type: 'text', required: true },
+          { id: 'dateOfRegularization', label: 'Date of Regularization', type: 'date', required: true },
+          { id: 'periodOfProbationPrescribed', label: 'Period of Probation Prescribed', type: 'text', required: true },
+          { id: 'leaveTakenDuringProbation', label: 'Leave Taken During Probation', type: 'text', required: true },
+          { id: 'dateOfCompletionOfProbation', label: 'Date of Completion of Probation', type: 'date', required: true },
+          { id: 'testsToBePassedDuringProbation', label: 'Tests to be Passed During Probation', type: 'textarea', required: true },
+          { id: 'punishmentsDuringProbation', label: 'Punishments During Probation', type: 'textarea', required: true },
+          { id: 'pendingPROE', label: 'Pending PR/OE', type: 'textarea', required: true },
+          { id: 'characterAndConduct', label: 'Character and Conduct', type: 'select', required: true, options: ['Satisfactory', 'Good', 'Excellent'] },
+          { id: 'firingPracticeCompleted', label: 'Firing Practice Completed', type: 'select', required: true, options: ['YES', 'NO'] },
+          { id: 'remarksOfICOfficer', label: 'Remarks of I/C Officer', type: 'textarea', required: true },
+          { id: 'remarksOfCommandant', label: 'Remarks of Commandant', type: 'textarea', required: true },
+          { id: 'remarksOfDIG', label: 'Remarks of DIG', type: 'textarea', required: true },
+          { id: 'adgpOrders', label: 'ADGP Orders', type: 'textarea', required: true }
+        ],
+        validationRules: []
+      },
+      {
+        id: 'punishment_letter',
+        name: 'Punishment Letter',
+        category: 'Disciplinary',
+        template: [
+          { id: 'rcNo', label: 'R c. No', type: 'text', required: true },
+          { id: 'doNo', label: 'D. O No', type: 'text', required: true },
+          { id: 'orderDate', label: 'Order Date', type: 'date', required: true },
+          { id: 'punishmentAwarded', label: 'Punishment Awarded', type: 'textarea', required: true },
+          { id: 'delinquencyDescription', label: 'Delinquency Description', type: 'textarea', required: true },
+          { id: 'issuedBy', label: 'Issued By', type: 'text', required: true },
+          { id: 'issuedDate', label: 'Issued Date', type: 'date', required: true }
+        ],
+        validationRules: []
+      },
+      {
+        id: 'reward_letter',
+        name: 'Reward Letter',
+        category: 'Recognition',
+        template: [
+          { id: 'rcNo', label: 'R c No', type: 'text', required: true },
+          { id: 'hooNo', label: 'H. O. O No', type: 'text', required: true },
+          { id: 'date', label: 'Date', type: 'date', required: true },
+          { id: 'issuedBy', label: 'Issued By', type: 'text', required: true },
+          { id: 'subject', label: 'Subject', type: 'text', required: true },
+          { id: 'referenceOrders', label: 'Reference Orders', type: 'textarea', required: true },
+          { id: 'rewardDetails', label: 'Reward Details', type: 'textarea', required: true },
+          { id: 'reasonForReward', label: 'Reason for Reward', type: 'textarea', required: true }
+        ],
+        validationRules: []
+      }
+    ];
+  }
+
   // Document methods
   async saveDocument(document: StoredDocument): Promise<string> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Encrypt sensitive data before storing
       const encryptedDocument = this.encryptSensitiveFields(document);
       
@@ -290,6 +429,11 @@ class DatabaseService {
 
   async getDocument(id: string): Promise<StoredDocument | null> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Try Supabase first if enabled
       if (this.useSupabase) {
         try {
@@ -315,6 +459,11 @@ class DatabaseService {
 
   async getAllDocuments(): Promise<StoredDocument[]> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Try Supabase first if enabled
       if (this.useSupabase) {
         try {
@@ -338,6 +487,11 @@ class DatabaseService {
 
   async updateDocument(id: string, updates: Partial<StoredDocument>): Promise<boolean> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       const encryptedUpdates = this.encryptSensitiveFields(updates as StoredDocument);
       
       // Update in IndexedDB
@@ -362,6 +516,11 @@ class DatabaseService {
 
   async deleteDocument(id: string): Promise<boolean> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Delete from IndexedDB
       await this.db.documents.delete(id);
       
@@ -385,6 +544,11 @@ class DatabaseService {
   // Template methods
   async saveTemplate(template: DocumentType): Promise<string> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Check if template already exists (for updates)
       const existingTemplate = await this.db.templates.where('id').equals(template.id).first();
       
@@ -422,6 +586,11 @@ class DatabaseService {
 
   async getTemplate(id: string): Promise<DocumentType | null> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Try Supabase first if enabled
       if (this.useSupabase) {
         try {
@@ -444,6 +613,11 @@ class DatabaseService {
 
   async getAllTemplates(): Promise<DocumentType[]> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Try Supabase first if enabled
       if (this.useSupabase) {
         try {
@@ -463,12 +637,18 @@ class DatabaseService {
       return templates;
     } catch (error) {
       console.error('Failed to retrieve templates from database:', error);
-      return [];
+      // Return built-in templates as last resort
+      return this.getBuiltInTemplates();
     }
   }
 
   async updateTemplate(id: string, updates: Partial<DocumentType>): Promise<boolean> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Update in IndexedDB
       await this.db.templates.update(id, updates);
       
@@ -491,6 +671,11 @@ class DatabaseService {
 
   async deleteTemplate(id: string): Promise<boolean> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Delete from IndexedDB
       await this.db.templates.delete(id);
       
@@ -530,6 +715,11 @@ class DatabaseService {
     minConfidence?: number;
   }): Promise<StoredDocument[]> {
     try {
+      // Wait for initialization
+      if (!this.initialized) {
+        await this.initializeDatabase();
+      }
+
       // Try Supabase first if enabled
       if (this.useSupabase) {
         try {
@@ -841,6 +1031,30 @@ class DatabaseService {
         success: false,
         message: error instanceof Error ? error.message : 'Sync failed'
       };
+    }
+  }
+
+  // Check if database is ready
+  isReady(): boolean {
+    return this.initialized;
+  }
+
+  // Wait for database to be ready
+  async waitForReady(): Promise<void> {
+    if (this.initialized) return;
+    
+    // Wait up to 10 seconds for initialization
+    const maxWait = 10000;
+    const checkInterval = 100;
+    let waited = 0;
+    
+    while (!this.initialized && waited < maxWait) {
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
+      waited += checkInterval;
+    }
+    
+    if (!this.initialized) {
+      throw new Error('Database initialization timeout');
     }
   }
 }

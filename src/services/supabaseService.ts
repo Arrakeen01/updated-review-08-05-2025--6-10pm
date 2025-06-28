@@ -3,9 +3,9 @@ import { securityService } from './securityService';
 import { StoredDocument } from './databaseService';
 import { DocumentType } from '../types';
 
-// Get Supabase credentials from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Supabase Configuration - Add your credentials here
+const supabaseUrl = 'https://your-project-ref.supabase.co';
+const supabaseKey = 'your-anon-key-here';
 
 // Check if Supabase credentials are available and not placeholder values
 const hasSupabaseCredentials = supabaseUrl && supabaseKey && 
@@ -31,7 +31,7 @@ class SupabaseService {
 
   async saveDocument(document: StoredDocument): Promise<string> {
     if (!this.isAvailable()) {
-      throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      throw new Error('Supabase is not configured. Please set supabaseUrl and supabaseKey in supabaseService.ts');
     }
 
     try {
@@ -80,7 +80,7 @@ class SupabaseService {
 
   async saveTemplate(template: DocumentType): Promise<string> {
     if (!this.isAvailable()) {
-      throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      throw new Error('Supabase is not configured. Please set supabaseUrl and supabaseKey in supabaseService.ts');
     }
 
     try {
@@ -145,7 +145,7 @@ class SupabaseService {
 
   async updateTemplate(id: string, updates: Partial<DocumentType>): Promise<void> {
     if (!this.isAvailable()) {
-      throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      throw new Error('Supabase is not configured. Please set supabaseUrl and supabaseKey in supabaseService.ts');
     }
 
     try {
@@ -175,7 +175,7 @@ class SupabaseService {
 
   async deleteTemplate(id: string): Promise<void> {
     if (!this.isAvailable()) {
-      throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      throw new Error('Supabase is not configured. Please set supabaseUrl and supabaseKey in supabaseService.ts');
     }
 
     try {
@@ -233,8 +233,6 @@ class SupabaseService {
 
     try {
       console.log('Fetching all documents from Supabase...');
-      console.log('Supabase URL:', supabaseUrl);
-      console.log('Supabase Key (first 20 chars):', supabaseKey?.substring(0, 20) + '...');
       
       // Test connection first
       const connectionTest = await this.checkConnection();
@@ -264,7 +262,7 @@ class SupabaseService {
 
   async updateDocument(id: string, updates: Partial<StoredDocument>): Promise<void> {
     if (!this.isAvailable()) {
-      throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      throw new Error('Supabase is not configured. Please set supabaseUrl and supabaseKey in supabaseService.ts');
     }
 
     try {
@@ -307,7 +305,7 @@ class SupabaseService {
 
   async deleteDocument(id: string): Promise<void> {
     if (!this.isAvailable()) {
-      throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      throw new Error('Supabase is not configured. Please set supabaseUrl and supabaseKey in supabaseService.ts');
     }
 
     try {
@@ -483,7 +481,7 @@ class SupabaseService {
 
   async checkConnection(): Promise<boolean> {
     if (!this.isAvailable()) {
-      console.warn('Supabase credentials not configured properly. Please set valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      console.warn('Supabase credentials not configured properly. Please set valid supabaseUrl and supabaseKey in supabaseService.ts');
       return false;
     }
 
@@ -567,13 +565,13 @@ class SupabaseService {
       if (supabaseUrl === 'https://your-project-ref.supabase.co' || supabaseKey === 'your-anon-key-here') {
         return {
           configured: false,
-          message: 'Supabase environment variables contain placeholder values. Please replace them with your actual Supabase project URL and anon key from your Supabase Dashboard > Settings > API.'
+          message: 'Supabase credentials contain placeholder values. Please replace them with your actual Supabase project URL and anon key from your Supabase Dashboard > Settings > API.'
         };
       }
       
       return {
         configured: false,
-        message: 'Supabase environment variables are missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.'
+        message: 'Supabase credentials are missing. Please set supabaseUrl and supabaseKey in supabaseService.ts'
       };
     }
     
