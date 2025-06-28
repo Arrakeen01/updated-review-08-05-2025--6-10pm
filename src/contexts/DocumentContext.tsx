@@ -15,7 +15,7 @@ interface DocumentContextType {
 
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
-// Updated mock document types with the comprehensive probation letter template
+// Updated mock document types with the new punishment letter template
 const mockDocumentTypes: DocumentType[] = [
   {
     id: 'earned_leave',
@@ -93,19 +93,13 @@ const mockDocumentTypes: DocumentType[] = [
     name: 'Punishment Letter',
     category: 'Disciplinary',
     template: [
-      { id: 'officerName', label: 'Officer Name', type: 'text', required: true },
-      { id: 'badgeNumber', label: 'Badge Number', type: 'text', required: true },
-      { id: 'rank', label: 'Rank', type: 'select', required: true, options: ['Constable', 'Head Constable', 'Sub-Inspector', 'Inspector', 'DSP', 'SP'] },
-      { id: 'department', label: 'Department', type: 'text', required: true },
-      { id: 'violationType', label: 'Type of Violation', type: 'select', required: true, options: ['Misconduct', 'Negligence of Duty', 'Insubordination', 'Unauthorized Absence', 'Other'] },
-      { id: 'incidentDate', label: 'Incident Date', type: 'date', required: true },
-      { id: 'incidentDescription', label: 'Incident Description', type: 'textarea', required: true },
-      { id: 'punishmentType', label: 'Type of Punishment', type: 'select', required: true, options: ['Warning', 'Suspension', 'Fine', 'Demotion', 'Dismissal'] },
-      { id: 'punishmentDuration', label: 'Punishment Duration', type: 'text', required: false },
-      { id: 'fineAmount', label: 'Fine Amount (if applicable)', type: 'number', required: false },
-      { id: 'issuingAuthority', label: 'Issuing Authority', type: 'text', required: true },
-      { id: 'effectiveDate', label: 'Effective Date', type: 'date', required: true },
-      { id: 'appealRights', label: 'Appeal Rights Information', type: 'textarea', required: true }
+      { id: 'rcNo', label: 'R c. No', type: 'text', required: true },
+      { id: 'doNo', label: 'D. O No', type: 'text', required: true },
+      { id: 'orderDate', label: 'Order Date', type: 'date', required: true },
+      { id: 'punishmentAwarded', label: 'Punishment Awarded', type: 'textarea', required: true },
+      { id: 'delinquencyDescription', label: 'Delinquency Description', type: 'textarea', required: true },
+      { id: 'issuedBy', label: 'Issued By', type: 'text', required: true },
+      { id: 'issuedDate', label: 'Issued Date', type: 'date', required: true }
     ],
     validationRules: []
   },
