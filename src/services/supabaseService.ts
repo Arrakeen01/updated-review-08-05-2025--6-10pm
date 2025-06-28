@@ -55,7 +55,9 @@ class SupabaseService {
           document_data: document.documentData,
           extracted_images: document.extractedImages,
           processing_metadata: document.processingMetadata,
-          metadata: document.metadata
+          metadata: document.metadata,
+          finalized_by: document.finalizedBy,
+          finalized_on: document.finalizedOn
         }])
         .select();
 
@@ -163,6 +165,8 @@ class SupabaseService {
         .eq('id', id);
 
       if (error) throw error;
+      
+      console.log('Template successfully updated in Supabase:', id);
     } catch (error) {
       console.error('Failed to update template in Supabase:', error);
       throw error;
@@ -181,6 +185,8 @@ class SupabaseService {
         .eq('id', id);
 
       if (error) throw error;
+      
+      console.log('Template successfully deleted from Supabase:', id);
     } catch (error) {
       console.error('Failed to delete template from Supabase:', error);
       throw error;
@@ -257,6 +263,8 @@ class SupabaseService {
       if (updates.documentData) updateData.document_data = updates.documentData;
       if (updates.extractedImages) updateData.extracted_images = updates.extractedImages;
       if (updates.processingMetadata) updateData.processing_metadata = updates.processingMetadata;
+      if (updates.finalizedBy) updateData.finalized_by = updates.finalizedBy;
+      if (updates.finalizedOn) updateData.finalized_on = updates.finalizedOn;
       
       // Direct mappings
       if (updates.type) updateData.type = updates.type;
@@ -274,6 +282,8 @@ class SupabaseService {
         .eq('id', id);
 
       if (error) throw error;
+      
+      console.log('Document successfully updated in Supabase:', id);
     } catch (error) {
       console.error('Failed to update document in Supabase:', error);
       throw error;
@@ -292,6 +302,8 @@ class SupabaseService {
         .eq('id', id);
 
       if (error) throw error;
+      
+      console.log('Document successfully deleted from Supabase:', id);
     } catch (error) {
       console.error('Failed to delete document from Supabase:', error);
       throw error;
@@ -371,9 +383,20 @@ class SupabaseService {
     console.log(`Syncing ${indexedDBTemplates.length} templates...`);
     for (const template of indexedDBTemplates) {
       try {
-        await this.saveTemplate(template);
-        templatesSynced++;
-        console.log(`Synced template: ${template.name}`);
+        // Check if template already exists
+        const { data: existingTemplate } = await supabase!
+          .from('templates')
+          .select('id')
+          .eq('id', template.id)
+          .single();
+
+        if (!existingTemplate) {
+          await this.saveTemplate(template);
+          templatesSynced++;
+          console.log(`Synced template: ${template.name}`);
+        } else {
+          console.log(`Template already exists: ${template.name}`);
+        }
       } catch (error) {
         const errorMsg = `Failed to sync template ${template.name}: ${error instanceof Error ? error.message : 'Unknown error'}`;
         console.error(errorMsg);
@@ -385,9 +408,20 @@ class SupabaseService {
     console.log(`Syncing ${indexedDBDocuments.length} documents...`);
     for (const document of indexedDBDocuments) {
       try {
-        await this.saveDocument(document);
-        documentsSynced++;
-        console.log(`Synced document: ${document.id}`);
+        // Check if document already exists
+        const { data: existingDocument } = await supabase!
+          .from('documents')
+          .select('id')
+          .eq('id', document.id)
+          .single();
+
+        if (!existingDocument) {
+          await this.saveDocument(document);
+          documentsSynced++;
+          console.log(`Synced document: ${document.id}`);
+        } else {
+          console.log(`Document already exists: ${document.id}`);
+        }
       } catch (error) {
         const errorMsg = `Failed to sync document ${document.id}: ${error instanceof Error ? error.message : 'Unknown error'}`;
         console.error(errorMsg);

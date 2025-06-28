@@ -201,22 +201,63 @@ class SparkDatabase extends Dexie {
 
 class DatabaseService {
   private db: SparkDatabase;
-  private useSupabase: boolean = false; // Disabled Supabase storage
+  private useSupabase: boolean = true; // Re-enabled Supabase
   private syncInProgress: boolean = false;
 
   constructor() {
     this.db = new SparkDatabase();
-    // Removed Supabase initialization
+    this.initializeSupabaseSync();
   }
 
   private async initializeSupabaseSync() {
-    // Disabled Supabase sync
-    console.log('Supabase sync disabled - using IndexedDB only');
+    try {
+      // Check if Supabase is properly configured
+      const configStatus = supabaseService.getConfigurationStatus();
+      if (!configStatus.configured) {
+        console.warn('Supabase not configured:', configStatus.message);
+        this.useSupabase = false;
+        return;
+      }
+
+      // Test Supabase connection
+      const isConnected = await supabaseService.checkConnection();
+      if (!isConnected) {
+        console.warn('Supabase connection failed, using IndexedDB only');
+        this.useSupabase = false;
+        return;
+      }
+
+      console.log('Supabase connected successfully');
+      this.useSupabase = true;
+
+      // Sync existing data to Supabase
+      await this.syncExistingDataToSupabase();
+    } catch (error) {
+      console.error('Failed to initialize Supabase sync:', error);
+      this.useSupabase = false;
+    }
   }
 
   private async syncExistingDataToSupabase(): Promise<void> {
-    // Disabled Supabase sync
-    console.log('Supabase sync disabled - using IndexedDB only');
+    if (this.syncInProgress || !this.useSupabase) return;
+
+    try {
+      this.syncInProgress = true;
+      console.log('Starting sync of existing data to Supabase...');
+
+      // Get all local data
+      const localDocuments = await this.db.documents.toArray();
+      const localTemplates = await this.db.templates.toArray();
+
+      // Sync to Supabase
+      const syncResult = await supabaseService.syncIndexedDBToSupabase(localDocuments, localTemplates);
+      
+      console.log('Sync completed:', syncResult);
+    } catch (error) {
+      console.error('Failed to sync existing data:', error);
+    } finally {
+      this.syncInProgress = false;
+    }
   }
 
   private getBuiltInTemplates(): DocumentType[] {
@@ -335,8 +376,19 @@ class DatabaseService {
       // Encrypt sensitive data before storing
       const encryptedDocument = this.encryptSensitiveFields(document);
       
-      // Store in IndexedDB only
+      // Store in IndexedDB first
       const documentId = String(await this.db.documents.add(encryptedDocument));
+      
+      // Sync to Supabase if enabled
+      if (this.useSupabase) {
+        try {
+          await supabaseService.saveDocument(encryptedDocument);
+          console.log(`Document synced to Supabase: ${documentId}`);
+        } catch (error) {
+          console.warn('Failed to sync document to Supabase:', error);
+          // Continue with local storage even if Supabase fails
+        }
+      }
       
       console.log(`Document saved with ID: ${documentId}`);
       return documentId;
@@ -348,11 +400,22 @@ class DatabaseService {
 
   async getDocument(id: string): Promise<StoredDocument | null> {
     try {
-      const document = await this.db.documents.get(id) || null;
+      // Try Supabase first if enabled
+      if (this.useSupabase) {
+        try {
+          const supabaseDoc = await supabaseService.getDocument(id);
+          if (supabaseDoc) {
+            return this.decryptSensitiveFields(supabaseDoc);
+          }
+        } catch (error) {
+          console.warn('Failed to get document from Supabase, trying IndexedDB:', error);
+        }
+      }
 
+      // Fallback to IndexedDB
+      const document = await this.db.documents.get(id) || null;
       if (!document) return null;
       
-      // Decrypt sensitive fields
       return this.decryptSensitiveFields(document);
     } catch (error) {
       console.error('Failed to retrieve document:', error);
@@ -362,6 +425,19 @@ class DatabaseService {
 
   async getAllDocuments(): Promise<StoredDocument[]> {
     try {
+      // Try Supabase first if enabled
+      if (this.useSupabase) {
+        try {
+          const supabaseDocs = await supabaseService.getAllDocuments();
+          if (supabaseDocs.length > 0) {
+            return supabaseDocs.map(doc => this.decryptSensitiveFields(doc));
+          }
+        } catch (error) {
+          console.warn('Failed to get documents from Supabase, using IndexedDB:', error);
+        }
+      }
+
+      // Fallback to IndexedDB
       const documents = await this.db.documents.orderBy('timestamp').reverse().toArray();
       return documents.map(doc => this.decryptSensitiveFields(doc));
     } catch (error) {
@@ -373,7 +449,20 @@ class DatabaseService {
   async updateDocument(id: string, updates: Partial<StoredDocument>): Promise<boolean> {
     try {
       const encryptedUpdates = this.encryptSensitiveFields(updates as StoredDocument);
+      
+      // Update in IndexedDB
       await this.db.documents.update(id, encryptedUpdates);
+      
+      // Sync to Supabase if enabled
+      if (this.useSupabase) {
+        try {
+          await supabaseService.updateDocument(id, encryptedUpdates);
+          console.log(`Document updated in Supabase: ${id}`);
+        } catch (error) {
+          console.warn('Failed to update document in Supabase:', error);
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error('Failed to update document:', error);
@@ -383,7 +472,19 @@ class DatabaseService {
 
   async deleteDocument(id: string): Promise<boolean> {
     try {
+      // Delete from IndexedDB
       await this.db.documents.delete(id);
+      
+      // Delete from Supabase if enabled
+      if (this.useSupabase) {
+        try {
+          await supabaseService.deleteDocument(id);
+          console.log(`Document deleted from Supabase: ${id}`);
+        } catch (error) {
+          console.warn('Failed to delete document from Supabase:', error);
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error('Failed to delete document:', error);
@@ -394,7 +495,19 @@ class DatabaseService {
   // Template methods
   async saveTemplate(template: DocumentType): Promise<string> {
     try {
+      // Store in IndexedDB first
       const templateId = String(await this.db.templates.add(template));
+      
+      // Sync to Supabase if enabled
+      if (this.useSupabase) {
+        try {
+          await supabaseService.saveTemplate(template);
+          console.log(`Template synced to Supabase: ${templateId}`);
+        } catch (error) {
+          console.warn('Failed to sync template to Supabase:', error);
+        }
+      }
+      
       console.log(`Template saved with ID: ${templateId}`);
       return templateId;
     } catch (error) {
@@ -405,6 +518,18 @@ class DatabaseService {
 
   async getTemplate(id: string): Promise<DocumentType | null> {
     try {
+      // Try Supabase first if enabled
+      if (this.useSupabase) {
+        try {
+          const supabaseTemplate = await supabaseService.getAllTemplates();
+          const template = supabaseTemplate.find(t => t.id === id);
+          if (template) return template;
+        } catch (error) {
+          console.warn('Failed to get template from Supabase, trying IndexedDB:', error);
+        }
+      }
+
+      // Fallback to IndexedDB
       const template = await this.db.templates.get(id) || null;
       return template;
     } catch (error) {
@@ -415,11 +540,27 @@ class DatabaseService {
 
   async getAllTemplates(): Promise<DocumentType[]> {
     try {
-      const templates = await this.db.templates.orderBy('name').toArray();
-
       // Always include built-in templates
       const builtInTemplates = this.getBuiltInTemplates();
-      const customTemplates = templates.filter(t => !builtInTemplates.some(bt => bt.id === t.id));
+      
+      // Try Supabase first if enabled
+      if (this.useSupabase) {
+        try {
+          const supabaseTemplates = await supabaseService.getAllTemplates();
+          const customTemplates = supabaseTemplates.filter(t => 
+            !builtInTemplates.some(bt => bt.id === t.id)
+          );
+          return [...builtInTemplates, ...customTemplates];
+        } catch (error) {
+          console.warn('Failed to get templates from Supabase, using IndexedDB:', error);
+        }
+      }
+
+      // Fallback to IndexedDB
+      const templates = await this.db.templates.orderBy('name').toArray();
+      const customTemplates = templates.filter(t => 
+        !builtInTemplates.some(bt => bt.id === t.id)
+      );
       
       return [...builtInTemplates, ...customTemplates];
     } catch (error) {
@@ -430,7 +571,19 @@ class DatabaseService {
 
   async updateTemplate(id: string, updates: Partial<DocumentType>): Promise<boolean> {
     try {
+      // Update in IndexedDB
       await this.db.templates.update(id, updates);
+      
+      // Sync to Supabase if enabled
+      if (this.useSupabase) {
+        try {
+          await supabaseService.updateTemplate(id, updates);
+          console.log(`Template updated in Supabase: ${id}`);
+        } catch (error) {
+          console.warn('Failed to update template in Supabase:', error);
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error('Failed to update template:', error);
@@ -440,7 +593,19 @@ class DatabaseService {
 
   async deleteTemplate(id: string): Promise<boolean> {
     try {
+      // Delete from IndexedDB
       await this.db.templates.delete(id);
+      
+      // Delete from Supabase if enabled
+      if (this.useSupabase) {
+        try {
+          await supabaseService.deleteTemplate(id);
+          console.log(`Template deleted from Supabase: ${id}`);
+        } catch (error) {
+          console.warn('Failed to delete template from Supabase:', error);
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error('Failed to delete template:', error);
@@ -467,6 +632,19 @@ class DatabaseService {
     minConfidence?: number;
   }): Promise<StoredDocument[]> {
     try {
+      // Try Supabase first if enabled
+      if (this.useSupabase) {
+        try {
+          const supabaseResults = await supabaseService.searchDocuments(query, filters);
+          if (supabaseResults.length > 0) {
+            return supabaseResults.map(doc => this.decryptSensitiveFields(doc));
+          }
+        } catch (error) {
+          console.warn('Failed to search documents in Supabase, using IndexedDB:', error);
+        }
+      }
+
+      // Fallback to IndexedDB
       const documents = await this.searchDocumentsIndexedDB(query, filters);
       return documents.map(doc => this.decryptSensitiveFields(doc));
     } catch (error) {
@@ -737,7 +915,35 @@ class DatabaseService {
 
   // Manual sync method
   async syncToSupabase(): Promise<{ success: boolean; message: string }> {
-    return { success: false, message: 'Supabase sync is disabled' };
+    if (!this.useSupabase) {
+      return { success: false, message: 'Supabase is disabled' };
+    }
+
+    try {
+      // Check Supabase connection
+      const isConnected = await supabaseService.checkConnection();
+      if (!isConnected) {
+        return { success: false, message: 'Supabase connection failed' };
+      }
+
+      // Get all local data
+      const localDocuments = await this.db.documents.toArray();
+      const localTemplates = await this.db.templates.toArray();
+
+      // Sync to Supabase
+      const syncResult = await supabaseService.syncIndexedDBToSupabase(localDocuments, localTemplates);
+      
+      return {
+        success: true,
+        message: `Synced ${syncResult.documentsSynced} documents and ${syncResult.templatesSynced} templates to Supabase`
+      };
+    } catch (error) {
+      console.error('Manual sync failed:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Sync failed'
+      };
+    }
   }
 }
 

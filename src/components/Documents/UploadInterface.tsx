@@ -69,7 +69,7 @@ export function UploadInterface() {
       console.log('Connection test result:', connectionOk);
       
       if (!connectionOk) {
-        alert('Supabase connection failed. Please check your environment variables.');
+        alert('Supabase connection failed. Please check your environment variables and database setup.');
         return;
       }
       
@@ -104,7 +104,7 @@ export function UploadInterface() {
       const syncResult = await databaseService.syncToSupabase();
       
       if (syncResult.success) {
-        alert('Data successfully synced to Supabase!');
+        alert(`Sync successful! ${syncResult.message}`);
         setSupabaseHealth(true);
       } else {
         alert(`Sync failed: ${syncResult.message}`);
@@ -316,7 +316,7 @@ export function UploadInterface() {
 
       console.log('Saving document to database...', storedDocument.id);
       
-      // Save to database (which will try Supabase first, then fallback to IndexedDB)
+      // Save to database (which will sync to both IndexedDB and Supabase)
       const documentId = await databaseService.saveDocument(storedDocument);
       console.log('Document saved successfully with ID:', documentId);
       
@@ -457,7 +457,7 @@ export function UploadInterface() {
                   {getServiceStatusText(supabaseHealth, 'Supabase')}
                 </p>
                 <p className={`text-xs ${getServiceStatusIcon(supabaseHealth).replace('text-', 'text-').replace('600', '700')}`}>
-                  {supabaseHealth === null ? 'Checking database...' : supabaseHealth ? 'Database ready' : 'Database unavailable'}
+                  {supabaseHealth === null ? 'Checking database...' : supabaseHealth ? 'Database ready' : 'Using local storage'}
                 </p>
               </div>
             </div>
@@ -476,7 +476,7 @@ export function UploadInterface() {
               </button>
               <button
                 onClick={syncToSupabase}
-                disabled={isSyncing || !supabaseHealth}
+                disabled={isSyncing}
                 className="inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                 title="Sync to Supabase"
               >
@@ -497,7 +497,7 @@ export function UploadInterface() {
           <h2 className="text-xl font-semibold text-gray-900">Document Upload & Processing</h2>
           <div className="flex items-center space-x-2 text-xs text-blue-600">
             <Zap className="h-4 w-4" />
-            <span>Azure AI + OpenAI + Template Mapping</span>
+            <span>Azure AI + OpenAI + Template Mapping + Database Sync</span>
           </div>
         </div>
         
@@ -507,11 +507,11 @@ export function UploadInterface() {
               <FileImage className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Upload Document</h3>
               <p className="mt-1 text-sm text-gray-500">
-                Select a document for intelligent processing with template mapping
+                Select a document for intelligent processing with template mapping and database sync
               </p>
               {azureServiceHealth && openAIServiceHealth && (
                 <p className="mt-1 text-xs text-blue-600">
-                  Azure AI OCR + OpenAI analysis + Automatic template field mapping
+                  Azure AI OCR + OpenAI analysis + Automatic template field mapping + Supabase sync
                 </p>
               )}
               <div className="mt-6 flex justify-center space-x-4">
@@ -887,7 +887,7 @@ export function UploadInterface() {
               </div>
               <p className="text-sm text-gray-500 mb-4">
                 Scan this QR code with your mobile device to upload documents directly from your phone camera.
-                Documents will be processed with Azure AI and OpenAI with automatic template mapping.
+                Documents will be processed with Azure AI and OpenAI with automatic template mapping and database sync.
               </p>
               <button
                 onClick={() => setShowQrModal(false)}
