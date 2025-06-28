@@ -119,21 +119,81 @@ const defaultDocumentTypes: DocumentType[] = [
     name: 'Medical Leave Letter',
     category: 'Leave',
     template: [
-      { id: 'patientName', label: 'Patient Name', type: 'text', required: true },
-      { id: 'employeeId', label: 'Employee ID', type: 'text', required: true },
-      { id: 'department', label: 'Department', type: 'text', required: true },
-      { id: 'designation', label: 'Designation', type: 'text', required: true },
-      { id: 'medicalCondition', label: 'Medical Condition', type: 'textarea', required: true },
-      { id: 'doctorName', label: 'Doctor Name', type: 'text', required: true },
-      { id: 'hospitalName', label: 'Hospital/Clinic Name', type: 'text', required: true },
-      { id: 'leaveStartDate', label: 'Medical Leave Start Date', type: 'date', required: true },
-      { id: 'leaveEndDate', label: 'Medical Leave End Date', type: 'date', required: true },
-      { id: 'certificateNumber', label: 'Medical Certificate Number', type: 'text', required: false },
-      { id: 'treatmentDetails', label: 'Treatment Details', type: 'textarea', required: false },
-      { id: 'applicationDate', label: 'Application Date', type: 'date', required: true },
-      { id: 'supervisorName', label: 'Supervisor Name', type: 'text', required: true }
+      { 
+        id: 'name', 
+        label: 'Name', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s\\.]+$'
+      },
+      { 
+        id: 'dateOfSubmission', 
+        label: 'Date of Submission', 
+        type: 'date', 
+        required: true 
+      },
+      { 
+        id: 'coyBelongsTo', 
+        label: 'Coy Belongs to', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z0-9\\s]+$'
+      },
+      { 
+        id: 'rank', 
+        label: 'Rank', 
+        type: 'select', 
+        required: true,
+        options: ['PC', 'HC', 'SI', 'ASI', 'Inspector', 'DSP', 'SP', 'DIG', 'IG', 'ADGP', 'DGP']
+      },
+      { 
+        id: 'leaveReason', 
+        label: 'Leave Reason', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'phoneNumber', 
+        label: 'Phone Number', 
+        type: 'text', 
+        required: true,
+        validation: '^[6-9][0-9]{9}$'
+      },
+      { 
+        id: 'unitAndDistrict', 
+        label: 'Unit and District', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z0-9\\s\\.,]+$'
+      }
     ],
-    validationRules: []
+    validationRules: [
+      {
+        field: 'name',
+        rule: 'format',
+        message: 'Name should contain only alphabets, periods (.) and spaces. No digits or special characters.'
+      },
+      {
+        field: 'coyBelongsTo',
+        rule: 'format',
+        message: 'Company field should clearly indicate the unit/company affiliation (e.g., A Coy, B Coy, HQ Coy)'
+      },
+      {
+        field: 'phoneNumber',
+        rule: 'format',
+        message: 'Must be a valid 10-digit Indian mobile number starting with 6-9'
+      },
+      {
+        field: 'unitAndDistrict',
+        rule: 'format',
+        message: 'Must include both unit name and valid district name (e.g., 5th Bn. APSP, Vizianagaram)'
+      },
+      {
+        field: 'leaveReason',
+        rule: 'required',
+        message: 'Leave reason must be a descriptive sentence explaining the medical purpose'
+      }
+    ]
   },
   {
     id: 'probation_letter',
