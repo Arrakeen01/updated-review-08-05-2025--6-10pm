@@ -21,6 +21,20 @@ const supabase = hasSupabaseCredentials ? createClient(supabaseUrl, supabaseKey,
   auth: {
     persistSession: false,
     autoRefreshToken: false
+  },
+  global: {
+    fetch: (url, options = {}) => {
+      console.log('Supabase fetch request:', url);
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+        }
+      }).catch(error => {
+        console.error('Supabase fetch error:', error);
+        throw error;
+      });
+    }
   }
 }) : null;
 
@@ -233,6 +247,15 @@ class SupabaseService {
 
     try {
       console.log('Fetching all documents from Supabase...');
+      console.log('Supabase URL:', supabaseUrl);
+      console.log('Supabase Key (first 20 chars):', supabaseKey?.substring(0, 20) + '...');
+      
+      // Test connection first
+      const connectionTest = await this.checkConnection();
+      if (!connectionTest) {
+        console.error('Supabase connection test failed');
+        throw new Error('Unable to connect to Supabase. Please check your configuration and network connection.');
+      }
       
       const { data, error } = await supabase!
         .from('documents')
@@ -248,6 +271,7 @@ class SupabaseService {
       return data.map(this.mapSupabaseToStoredDocument);
     } catch (error) {
       console.error('Failed to get documents from Supabase:', error);
+      // Return empty array instead of throwing to prevent app crash
       return [];
     }
   }
@@ -480,10 +504,12 @@ class SupabaseService {
     try {
       console.log('Checking Supabase connection...');
       
+      // Use a simple health check instead of querying documents table
       const { data, error } = await supabase!
         .from('documents')
         .select('count')
-        .limit(1);
+        .limit(1)
+        .single();
 
       const isConnected = !error;
       console.log('Supabase connection status:', isConnected);
