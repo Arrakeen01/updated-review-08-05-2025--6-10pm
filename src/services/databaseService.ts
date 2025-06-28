@@ -260,116 +260,6 @@ class DatabaseService {
     }
   }
 
-  private getBuiltInTemplates(): DocumentType[] {
-    return [
-      {
-        id: 'earned_leave',
-        name: 'Earned Leave Letter',
-        category: 'Leave',
-        template: [
-          { id: 'applicantName', label: 'Applicant Name', type: 'text', required: true },
-          { id: 'employeeId', label: 'Employee ID', type: 'text', required: true },
-          { id: 'department', label: 'Department', type: 'text', required: true },
-          { id: 'designation', label: 'Designation', type: 'text', required: true },
-          { id: 'leaveType', label: 'Leave Type', type: 'select', required: true, options: ['Earned Leave', 'Annual Leave', 'Vacation Leave'] },
-          { id: 'startDate', label: 'Leave Start Date', type: 'date', required: true },
-          { id: 'endDate', label: 'Leave End Date', type: 'date', required: true },
-          { id: 'duration', label: 'Duration (Days)', type: 'number', required: true },
-          { id: 'reason', label: 'Reason for Leave', type: 'textarea', required: true },
-          { id: 'supervisorName', label: 'Supervisor Name', type: 'text', required: true },
-          { id: 'applicationDate', label: 'Application Date', type: 'date', required: true },
-          { id: 'contactNumber', label: 'Contact Number', type: 'text', required: false },
-          { id: 'emergencyContact', label: 'Emergency Contact', type: 'text', required: false }
-        ],
-        validationRules: []
-      },
-      {
-        id: 'medical_leave',
-        name: 'Medical Leave Letter',
-        category: 'Leave',
-        template: [
-          { id: 'patientName', label: 'Patient Name', type: 'text', required: true },
-          { id: 'employeeId', label: 'Employee ID', type: 'text', required: true },
-          { id: 'department', label: 'Department', type: 'text', required: true },
-          { id: 'designation', label: 'Designation', type: 'text', required: true },
-          { id: 'medicalCondition', label: 'Medical Condition', type: 'textarea', required: true },
-          { id: 'doctorName', label: 'Doctor Name', type: 'text', required: true },
-          { id: 'hospitalName', label: 'Hospital/Clinic Name', type: 'text', required: true },
-          { id: 'leaveStartDate', label: 'Medical Leave Start Date', type: 'date', required: true },
-          { id: 'leaveEndDate', label: 'Medical Leave End Date', type: 'date', required: true },
-          { id: 'certificateNumber', label: 'Medical Certificate Number', type: 'text', required: false },
-          { id: 'treatmentDetails', label: 'Treatment Details', type: 'textarea', required: false },
-          { id: 'applicationDate', label: 'Application Date', type: 'date', required: true },
-          { id: 'supervisorName', label: 'Supervisor Name', type: 'text', required: true }
-        ],
-        validationRules: []
-      },
-      {
-        id: 'probation_letter',
-        name: 'Probation Letter',
-        category: 'Administrative',
-        template: [
-          { id: 'employeeName', label: 'Employee Name', type: 'text', required: true },
-          { id: 'employeeId', label: 'Employee ID', type: 'text', required: true },
-          { id: 'position', label: 'Position/Designation', type: 'text', required: true },
-          { id: 'department', label: 'Department', type: 'text', required: true },
-          { id: 'probationStartDate', label: 'Probation Start Date', type: 'date', required: true },
-          { id: 'probationEndDate', label: 'Probation End Date', type: 'date', required: true },
-          { id: 'probationPeriod', label: 'Probation Period (Months)', type: 'number', required: true },
-          { id: 'evaluationCriteria', label: 'Evaluation Criteria', type: 'textarea', required: true },
-          { id: 'supervisorName', label: 'Supervisor Name', type: 'text', required: true },
-          { id: 'reviewSchedule', label: 'Review Schedule', type: 'textarea', required: false },
-          { id: 'conditions', label: 'Terms and Conditions', type: 'textarea', required: true },
-          { id: 'issuanceDate', label: 'Letter Issuance Date', type: 'date', required: true },
-          { id: 'hrSignature', label: 'HR Signature', type: 'text', required: true }
-        ],
-        validationRules: []
-      },
-      {
-        id: 'punishment_letter',
-        name: 'Punishment Letter',
-        category: 'Disciplinary',
-        template: [
-          { id: 'officerName', label: 'Officer Name', type: 'text', required: true },
-          { id: 'badgeNumber', label: 'Badge Number', type: 'text', required: true },
-          { id: 'rank', label: 'Rank', type: 'select', required: true, options: ['Constable', 'Head Constable', 'Sub-Inspector', 'Inspector', 'DSP', 'SP'] },
-          { id: 'department', label: 'Department', type: 'text', required: true },
-          { id: 'violationType', label: 'Type of Violation', type: 'select', required: true, options: ['Misconduct', 'Negligence of Duty', 'Insubordination', 'Unauthorized Absence', 'Other'] },
-          { id: 'incidentDate', label: 'Incident Date', type: 'date', required: true },
-          { id: 'incidentDescription', label: 'Incident Description', type: 'textarea', required: true },
-          { id: 'punishmentType', label: 'Type of Punishment', type: 'select', required: true, options: ['Warning', 'Suspension', 'Fine', 'Demotion', 'Dismissal'] },
-          { id: 'punishmentDuration', label: 'Punishment Duration', type: 'text', required: false },
-          { id: 'fineAmount', label: 'Fine Amount (if applicable)', type: 'number', required: false },
-          { id: 'issuingAuthority', label: 'Issuing Authority', type: 'text', required: true },
-          { id: 'effectiveDate', label: 'Effective Date', type: 'date', required: true },
-          { id: 'appealRights', label: 'Appeal Rights Information', type: 'textarea', required: true }
-        ],
-        validationRules: []
-      },
-      {
-        id: 'reward_letter',
-        name: 'Reward Letter',
-        category: 'Recognition',
-        template: [
-          { id: 'recipientName', label: 'Recipient Name', type: 'text', required: true },
-          { id: 'badgeNumber', label: 'Badge Number', type: 'text', required: true },
-          { id: 'rank', label: 'Rank', type: 'select', required: true, options: ['Constable', 'Head Constable', 'Sub-Inspector', 'Inspector', 'DSP', 'SP'] },
-          { id: 'department', label: 'Department', type: 'text', required: true },
-          { id: 'awardType', label: 'Type of Award', type: 'select', required: true, options: ['Gallantry Award', 'Service Medal', 'Commendation Certificate', 'Excellence Award', 'Bravery Award'] },
-          { id: 'achievementDescription', label: 'Achievement Description', type: 'textarea', required: true },
-          { id: 'achievementDate', label: 'Achievement Date', type: 'date', required: true },
-          { id: 'awardDate', label: 'Award Date', type: 'date', required: true },
-          { id: 'issuingAuthority', label: 'Issuing Authority', type: 'text', required: true },
-          { id: 'witnessNames', label: 'Witness Names', type: 'textarea', required: false },
-          { id: 'monetaryValue', label: 'Monetary Value (if applicable)', type: 'number', required: false },
-          { id: 'ceremonyDetails', label: 'Award Ceremony Details', type: 'textarea', required: false },
-          { id: 'citation', label: 'Citation', type: 'textarea', required: true }
-        ],
-        validationRules: []
-      }
-    ];
-  }
-
   // Document methods
   async saveDocument(document: StoredDocument): Promise<string> {
     try {
@@ -495,21 +385,35 @@ class DatabaseService {
   // Template methods
   async saveTemplate(template: DocumentType): Promise<string> {
     try {
-      // Store in IndexedDB first
-      const templateId = String(await this.db.templates.add(template));
+      // Check if template already exists (for updates)
+      const existingTemplate = await this.db.templates.where('id').equals(template.id).first();
+      
+      if (existingTemplate) {
+        // Update existing template
+        await this.db.templates.update(template.id, template);
+        console.log(`Template updated in IndexedDB: ${template.id}`);
+      } else {
+        // Create new template
+        await this.db.templates.add(template);
+        console.log(`Template created in IndexedDB: ${template.id}`);
+      }
       
       // Sync to Supabase if enabled
       if (this.useSupabase) {
         try {
-          await supabaseService.saveTemplate(template);
-          console.log(`Template synced to Supabase: ${templateId}`);
+          if (existingTemplate) {
+            await supabaseService.updateTemplate(template.id, template);
+            console.log(`Template updated in Supabase: ${template.id}`);
+          } else {
+            await supabaseService.saveTemplate(template);
+            console.log(`Template synced to Supabase: ${template.id}`);
+          }
         } catch (error) {
           console.warn('Failed to sync template to Supabase:', error);
         }
       }
       
-      console.log(`Template saved with ID: ${templateId}`);
-      return templateId;
+      return template.id;
     } catch (error) {
       console.error('Failed to save template to database:', error);
       throw new Error('Failed to save template to database');
@@ -540,17 +444,14 @@ class DatabaseService {
 
   async getAllTemplates(): Promise<DocumentType[]> {
     try {
-      // Always include built-in templates
-      const builtInTemplates = this.getBuiltInTemplates();
-      
       // Try Supabase first if enabled
       if (this.useSupabase) {
         try {
           const supabaseTemplates = await supabaseService.getAllTemplates();
-          const customTemplates = supabaseTemplates.filter(t => 
-            !builtInTemplates.some(bt => bt.id === t.id)
-          );
-          return [...builtInTemplates, ...customTemplates];
+          if (supabaseTemplates.length > 0) {
+            console.log(`Retrieved ${supabaseTemplates.length} templates from Supabase`);
+            return supabaseTemplates;
+          }
         } catch (error) {
           console.warn('Failed to get templates from Supabase, using IndexedDB:', error);
         }
@@ -558,14 +459,11 @@ class DatabaseService {
 
       // Fallback to IndexedDB
       const templates = await this.db.templates.orderBy('name').toArray();
-      const customTemplates = templates.filter(t => 
-        !builtInTemplates.some(bt => bt.id === t.id)
-      );
-      
-      return [...builtInTemplates, ...customTemplates];
+      console.log(`Retrieved ${templates.length} templates from IndexedDB`);
+      return templates;
     } catch (error) {
       console.error('Failed to retrieve templates from database:', error);
-      return this.getBuiltInTemplates(); // Return at least built-in templates
+      return [];
     }
   }
 

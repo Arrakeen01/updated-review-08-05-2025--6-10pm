@@ -15,8 +15,8 @@ interface DocumentContextType {
 
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
-// Updated mock document types with the five specified templates
-const mockDocumentTypes: DocumentType[] = [
+// Built-in templates that serve as defaults
+const defaultDocumentTypes: DocumentType[] = [
   {
     id: 'earned_leave',
     name: 'Earned Leave Letter',
@@ -126,7 +126,7 @@ const mockDocumentTypes: DocumentType[] = [
 
 export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>(mockDocumentTypes);
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
 
   // Load documents and templates from database on mount
   useEffect(() => {
@@ -163,11 +163,40 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
   const refreshTemplates = async () => {
     try {
-      const storedTemplates = await databaseService.getAllTemplates();
-      // Combine mock templates with stored templates
-      setDocumentTypes([...mockDocumentTypes, ...storedTemplates]);
+      // Get all templates from database (includes both built-in and custom)
+      const allStoredTemplates = await databaseService.getAllTemplates();
+      
+      // Create a map of stored templates by ID for quick lookup
+      const storedTemplatesMap = new Map(allStoredTemplates.map(t => [t.id, t]));
+      
+      // Start with an empty array
+      const finalTemplates: DocumentType[] = [];
+      
+      // For each default template, check if there's a stored version
+      for (const defaultTemplate of defaultDocumentTypes) {
+        const storedVersion = storedTemplatesMap.get(defaultTemplate.id);
+        if (storedVersion) {
+          // Use the stored version (which may be modified)
+          finalTemplates.push(storedVersion);
+          // Remove from map so we don't add it again
+          storedTemplatesMap.delete(defaultTemplate.id);
+        } else {
+          // Use the default version
+          finalTemplates.push(defaultTemplate);
+        }
+      }
+      
+      // Add any remaining custom templates that don't override built-ins
+      for (const customTemplate of storedTemplatesMap.values()) {
+        finalTemplates.push(customTemplate);
+      }
+      
+      console.log('Loaded templates:', finalTemplates.length, 'total');
+      setDocumentTypes(finalTemplates);
     } catch (error) {
       console.error('Failed to load templates from database:', error);
+      // Fallback to default templates if database fails
+      setDocumentTypes(defaultDocumentTypes);
     }
   };
 
