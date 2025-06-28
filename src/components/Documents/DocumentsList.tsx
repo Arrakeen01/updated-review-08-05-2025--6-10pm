@@ -13,7 +13,9 @@ import {
   AlertCircle,
   Database,
   Cpu,
-  Box
+  Box,
+  Stamp,
+  PenTool
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { databaseService, StoredDocument } from '../../services/databaseService';
@@ -27,6 +29,7 @@ export function DocumentsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'finalized' | 'rejected'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [verificationFilter, setVerificationFilter] = useState<'all' | 'verified' | 'unverified'>('all');
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -36,7 +39,7 @@ export function DocumentsList() {
 
   useEffect(() => {
     applyFilters();
-  }, [documents, searchTerm, statusFilter, typeFilter]);
+  }, [documents, searchTerm, statusFilter, typeFilter, verificationFilter]);
 
   const loadDocuments = async () => {
     try {
@@ -61,8 +64,22 @@ export function DocumentsList() {
 
       const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
       const matchesType = typeFilter === 'all' || doc.type.name === typeFilter;
+      
+      // Verification filter
+      let matchesVerification = true;
+      if (verificationFilter !== 'all') {
+        const hasStamp = doc.metadata?.stampVerification?.isPresent || false;
+        const hasSignature = doc.metadata?.signatureVerification?.isPresent || false;
+        const isVerified = hasStamp && hasSignature;
+        
+        if (verificationFilter === 'verified' && !isVerified) {
+          matchesVerification = false;
+        } else if (verificationFilter === 'unverified' && isVerified) {
+          matchesVerification = false;
+        }
+      }
 
-      return matchesSearch && matchesStatus && matchesType;
+      return matchesSearch && matchesStatus && matchesType && matchesVerification;
     });
 
     setFilteredDocuments(filtered);
@@ -105,6 +122,19 @@ export function DocumentsList() {
     }
   };
 
+  const getVerificationStatus = (doc: StoredDocument) => {
+    const hasStamp = doc.metadata?.stampVerification?.isPresent || false;
+    const hasSignature = doc.metadata?.signatureVerification?.isPresent || false;
+    
+    if (hasStamp && hasSignature) {
+      return { status: 'Fully Verified', color: 'bg-green-100 text-green-800' };
+    } else if (hasStamp || hasSignature) {
+      return { status: 'Partially Verified', color: 'bg-yellow-100 text-yellow-800' };
+    } else {
+      return { status: 'Not Verified', color: 'bg-red-100 text-red-800' };
+    }
+  };
+
   const exportDocument = (doc: StoredDocument) => {
     const exportData = {
       id: doc.id,
@@ -115,7 +145,11 @@ export function DocumentsList() {
       location: doc.location,
       timestamp: doc.timestamp,
       extractedFields: doc.fields,
-      ocrText: doc.ocrRawText
+      ocrText: doc.ocrRawText,
+      verification: {
+        stampVerification: doc.metadata?.stampVerification,
+        signatureVerification: doc.metadata?.signatureVerification
+      }
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -198,6 +232,15 @@ export function DocumentsList() {
               {documentTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
+            </select>
+            <select
+              value={verificationFilter}
+              onChange={(e) => setVerificationFilter(e.target.value as any)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Verification</option>
+              <option value="verified">Verified</option>
+              <option value="unverified">Unverified</option>
             </select>
           </div>
 
@@ -306,6 +349,37 @@ export function DocumentsList() {
                     <span className="capitalize">
                       {doc.metadata?.processingMethod?.replace('-', ' ') || 'Standard'}
                     </span>
+                  </div>
+                </div>
+
+                {/* Verification Status */}
+                <div className="mb-3">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Stamp className="h-4 w-4 text-gray-600" />
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        doc.metadata?.stampVerification?.isPresent 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        Stamp: {doc.metadata?.stampVerification?.isPresent ? 'Present' : 'Absent'}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <PenTool className="h-4 w-4 text-gray-600" />
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        doc.metadata?.signatureVerification?.isPresent 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        Signature: {doc.metadata?.signatureVerification?.isPresent ? 'Present' : 'Absent'}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${getVerificationStatus(doc).color}`}>
+                        {getVerificationStatus(doc).status}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

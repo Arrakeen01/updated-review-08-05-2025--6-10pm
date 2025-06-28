@@ -1,4 +1,5 @@
 import { securityService } from './securityService';
+import { stampVerificationService } from './stampVerificationService';
 
 interface AzureAIResult {
   extractedText: string;
@@ -7,6 +8,29 @@ interface AzureAIResult {
   tables: TableResult[];
   keyValuePairs: KeyValuePair[];
   processingTime: number;
+  stampVerification?: {
+    isPresent: boolean;
+    confidence: number;
+    matchedReference?: string;
+    boundingBox?: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    imageData?: string;
+  };
+  signatureVerification?: {
+    isPresent: boolean;
+    confidence: number;
+    boundingBox?: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    imageData?: string;
+  };
 }
 
 interface PageResult {
@@ -81,6 +105,10 @@ class AzureAIService {
       // Extract text content
       const extractedText = this.extractFullText(analysisResult);
 
+      // Perform stamp and signature verification
+      const stampVerificationResult = await stampVerificationService.verifyStamp(base64Data, userId);
+      const signatureVerificationResult = await stampVerificationService.verifySignature(base64Data, userId);
+
       const processingTime = Date.now() - startTime;
 
       const result: AzureAIResult = {
@@ -89,7 +117,9 @@ class AzureAIService {
         pages: analysisResult.pages || [],
         tables: analysisResult.tables || [],
         keyValuePairs: analysisResult.keyValuePairs || [],
-        processingTime
+        processingTime,
+        stampVerification: stampVerificationResult,
+        signatureVerification: signatureVerificationResult
       };
 
       // Log successful processing
@@ -101,7 +131,9 @@ class AzureAIService {
         {
           confidence: result.confidence,
           textLength: result.extractedText.length,
-          processingTime
+          processingTime,
+          stampDetected: stampVerificationResult.isPresent,
+          signatureDetected: signatureVerificationResult.isPresent
         }
       );
 

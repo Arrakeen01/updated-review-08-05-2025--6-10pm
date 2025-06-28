@@ -18,11 +18,14 @@ import {
   Hash,
   Activity,
   Shield,
-  Zap
+  Zap,
+  Stamp,
+  PenTool
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { databaseService, StoredDocument } from '../../services/databaseService';
 import { securityService } from '../../services/securityService';
+import { stampVerificationService } from '../../services/stampVerificationService';
 
 interface DocumentDetailsProps {
   documentId?: string;
@@ -33,14 +36,18 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
   const { user } = useAuth();
   const [document, setDocument] = useState<StoredDocument | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'extracted' | 'processing' | 'metadata' | 'audit'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'extracted' | 'processing' | 'metadata' | 'audit' | 'verification'>('overview');
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
   const [selectedBoundingBox, setSelectedBoundingBox] = useState<string | null>(null);
+  const [referenceStamps, setReferenceStamps] = useState<any[]>([]);
 
   useEffect(() => {
     if (documentId) {
       loadDocument(documentId);
     }
+    
+    // Load reference stamps
+    setReferenceStamps(stampVerificationService.getReferenceStamps());
   }, [documentId]);
 
   const loadDocument = async (id: string) => {
@@ -84,7 +91,11 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
       ocrText: document.ocrRawText,
       processingMetadata: document.processingMetadata,
       extractedImages: document.extractedImages,
-      metadata: document.metadata
+      metadata: document.metadata,
+      verification: {
+        stampVerification: document.metadata?.stampVerification,
+        signatureVerification: document.metadata?.signatureVerification
+      }
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -136,6 +147,141 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
     ));
   };
 
+  const renderStampVerification = () => {
+    const stampVerification = document?.metadata?.stampVerification;
+    
+    if (!stampVerification) {
+      return (
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <Stamp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">No stamp verification data available</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-md font-medium text-gray-900">Stamp Verification</h4>
+          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+            stampVerification.isPresent 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-red-100 text-red-800'
+          }`}>
+            {stampVerification.isPresent ? 'Present' : 'Absent'}
+          </div>
+        </div>
+        
+        {stampVerification.isPresent && (
+          <>
+            <div className="flex items-center space-x-2 mb-2">
+              <span className="text-sm font-medium text-gray-700">Confidence:</span>
+              <span className="text-sm text-gray-900">{Math.round(stampVerification.confidence * 100)}%</span>
+            </div>
+            
+            {stampVerification.matchedReference && (
+              <div className="flex items-center space-x-2 mb-2">
+                <span className="text-sm font-medium text-gray-700">Matched Reference:</span>
+                <span className="text-sm text-gray-900">
+                  {referenceStamps.find(s => s.id === stampVerification.matchedReference)?.name || stampVerification.matchedReference}
+                </span>
+              </div>
+            )}
+            
+            {stampVerification.imageData && (
+              <div className="mt-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Detected Stamp:</p>
+                <div className="border rounded-lg overflow-hidden bg-white p-2">
+                  <img 
+                    src={stampVerification.imageData} 
+                    alt="Detected Stamp" 
+                    className="max-h-32 mx-auto"
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderSignatureVerification = () => {
+    const signatureVerification = document?.metadata?.signatureVerification;
+    
+    if (!signatureVerification) {
+      return (
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <PenTool className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">No signature verification data available</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-md font-medium text-gray-900">Signature Verification</h4>
+          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+            signatureVerification.isPresent 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-red-100 text-red-800'
+          }`}>
+            {signatureVerification.isPresent ? 'Present' : 'Absent'}
+          </div>
+        </div>
+        
+        {signatureVerification.isPresent && (
+          <>
+            <div className="flex items-center space-x-2 mb-2">
+              <span className="text-sm font-medium text-gray-700">Confidence:</span>
+              <span className="text-sm text-gray-900">{Math.round(signatureVerification.confidence * 100)}%</span>
+            </div>
+            
+            {signatureVerification.imageData && (
+              <div className="mt-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Detected Signature:</p>
+                <div className="border rounded-lg overflow-hidden bg-white p-2">
+                  <img 
+                    src={signatureVerification.imageData} 
+                    alt="Detected Signature" 
+                    className="max-h-32 mx-auto"
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderReferenceStamps = () => {
+    return (
+      <div className="mt-6">
+        <h4 className="text-md font-medium text-gray-900 mb-3">Reference Stamps</h4>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {referenceStamps.map(stamp => (
+            <div key={stamp.id} className="border rounded-lg p-3 bg-white">
+              <div className="aspect-square flex items-center justify-center bg-gray-50 mb-2">
+                <img 
+                  src={stamp.imageUrl} 
+                  alt={stamp.name} 
+                  className="max-h-24 max-w-full"
+                  onError={(e) => {
+                    // If image fails to load, show a placeholder
+                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Stamp';
+                  }}
+                />
+              </div>
+              <p className="text-xs font-medium text-gray-900 text-center">{stamp.name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const getBoundingBoxColor = (type: string) => {
     const colors = {
       text: 'border-blue-500 bg-blue-100 bg-opacity-20',
@@ -144,7 +290,9 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
       footer: 'border-orange-500 bg-orange-100 bg-opacity-20',
       table: 'border-yellow-500 bg-yellow-100 bg-opacity-20',
       figure: 'border-pink-500 bg-pink-100 bg-opacity-20',
-      list: 'border-indigo-500 bg-indigo-100 bg-opacity-20'
+      list: 'border-indigo-500 bg-indigo-100 bg-opacity-20',
+      stamp: 'border-red-500 bg-red-100 bg-opacity-20',
+      signature: 'border-green-500 bg-green-100 bg-opacity-20'
     };
     return colors[type as keyof typeof colors] || 'border-gray-500 bg-gray-100 bg-opacity-20';
   };
@@ -262,11 +410,12 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+          <nav className="flex space-x-8 px-6 overflow-x-auto">
             {[
               { id: 'overview', label: 'Overview', icon: Eye },
               { id: 'extracted', label: 'Extracted Data', icon: Database },
               { id: 'processing', label: 'Processing Details', icon: Cpu },
+              { id: 'verification', label: 'Verification', icon: Shield },
               { id: 'metadata', label: 'Metadata', icon: Hash },
               ...(user?.role === 'admin' ? [{ id: 'audit', label: 'Audit Trail', icon: Shield }] : [])
             ].map((tab) => {
@@ -275,7 +424,7 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -353,6 +502,35 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
                         </span>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* Verification Summary */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Verification Summary</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`p-3 rounded-lg ${document.metadata?.stampVerification?.isPresent ? 'bg-green-50' : 'bg-red-50'}`}>
+                      <div className="flex items-center space-x-2">
+                        <Stamp className={`h-5 w-5 ${document.metadata?.stampVerification?.isPresent ? 'text-green-600' : 'text-red-600'}`} />
+                        <div>
+                          <p className="text-xs text-gray-600">Official Stamp</p>
+                          <p className="text-sm font-medium">
+                            {document.metadata?.stampVerification?.isPresent ? 'Present' : 'Absent'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded-lg ${document.metadata?.signatureVerification?.isPresent ? 'bg-green-50' : 'bg-red-50'}`}>
+                      <div className="flex items-center space-x-2">
+                        <PenTool className={`h-5 w-5 ${document.metadata?.signatureVerification?.isPresent ? 'text-green-600' : 'text-red-600'}`} />
+                        <div>
+                          <p className="text-xs text-gray-600">Signature</p>
+                          <p className="text-sm font-medium">
+                            {document.metadata?.signatureVerification?.isPresent ? 'Present' : 'Absent'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -582,6 +760,65 @@ export function DocumentDetails({ documentId, onClose }: DocumentDetailsProps) {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Verification Tab */}
+          {activeTab === 'verification' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Stamp Verification */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Stamp Verification</h3>
+                  {renderStampVerification()}
+                </div>
+
+                {/* Signature Verification */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Signature Verification</h3>
+                  {renderSignatureVerification()}
+                </div>
+              </div>
+
+              {/* Reference Stamps */}
+              {renderReferenceStamps()}
+
+              {/* Verification Audit */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Verification Audit</h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="space-y-3">
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">Verification Method</span>
+                      <span className="text-sm text-gray-600">AI-powered Image Analysis</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">Verification Date</span>
+                      <span className="text-sm text-gray-600">
+                        {new Date(document.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">Verification Status</span>
+                      <span className={`text-sm px-2 py-1 rounded-full ${
+                        document.metadata?.stampVerification?.isPresent && document.metadata?.signatureVerification?.isPresent
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {document.metadata?.stampVerification?.isPresent && document.metadata?.signatureVerification?.isPresent
+                          ? 'Fully Verified'
+                          : 'Verification Failed'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">Verified By</span>
+                      <span className="text-sm text-gray-600">
+                        {document.createdBy} (System)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

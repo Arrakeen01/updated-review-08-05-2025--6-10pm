@@ -28,7 +28,31 @@ export interface Document {
     layout?: any[];
     tables?: any[];
     documentMetadata?: any;
+    stampVerification?: StampVerification;
+    signatureVerification?: SignatureVerification;
   };
+}
+
+export interface StampVerification {
+  isPresent: boolean;
+  confidence: number;
+  matchedReference?: string;
+  boundingBox?: BoundingBox;
+  imageData?: string;
+}
+
+export interface SignatureVerification {
+  isPresent: boolean;
+  confidence: number;
+  boundingBox?: BoundingBox;
+  imageData?: string;
+}
+
+export interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface DocumentType {
