@@ -200,21 +200,257 @@ const defaultDocumentTypes: DocumentType[] = [
     name: 'Probation Letter',
     category: 'Administrative',
     template: [
-      { id: 'employeeName', label: 'Employee Name', type: 'text', required: true },
-      { id: 'employeeId', label: 'Employee ID', type: 'text', required: true },
-      { id: 'position', label: 'Position/Designation', type: 'text', required: true },
-      { id: 'department', label: 'Department', type: 'text', required: true },
-      { id: 'probationStartDate', label: 'Probation Start Date', type: 'date', required: true },
-      { id: 'probationEndDate', label: 'Probation End Date', type: 'date', required: true },
-      { id: 'probationPeriod', label: 'Probation Period (Months)', type: 'number', required: true },
-      { id: 'evaluationCriteria', label: 'Evaluation Criteria', type: 'textarea', required: true },
-      { id: 'supervisorName', label: 'Supervisor Name', type: 'text', required: true },
-      { id: 'reviewSchedule', label: 'Review Schedule', type: 'textarea', required: false },
-      { id: 'conditions', label: 'Terms and Conditions', type: 'textarea', required: true },
-      { id: 'issuanceDate', label: 'Letter Issuance Date', type: 'date', required: true },
-      { id: 'hrSignature', label: 'HR Signature', type: 'text', required: true }
+      { 
+        id: 'serviceClassCategory', 
+        label: 'Service Class Category', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s]+$'
+      },
+      { 
+        id: 'nameOfProbationer', 
+        label: 'Name of Probationer', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s\\.]+$'
+      },
+      { 
+        id: 'dateOfRegularization', 
+        label: 'Date of Regularization', 
+        type: 'date', 
+        required: true 
+      },
+      { 
+        id: 'periodOfProbationPrescribed', 
+        label: 'Period of Probation Prescribed', 
+        type: 'text', 
+        required: true 
+      },
+      { 
+        id: 'leaveTakenDuringProbation', 
+        label: 'Leave Taken During Probation', 
+        type: 'text', 
+        required: true 
+      },
+      { 
+        id: 'dateOfCompletionOfProbation', 
+        label: 'Date of Completion of Probation', 
+        type: 'date', 
+        required: true 
+      },
+      { 
+        id: 'testsToBePassedDuringProbation', 
+        label: 'Tests to be Passed During Probation', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'punishmentsDuringProbation', 
+        label: 'Punishments During Probation', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'pendingPROE', 
+        label: 'Pending PR/OE', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'characterAndConduct', 
+        label: 'Character and Conduct', 
+        type: 'select', 
+        required: true,
+        options: ['Satisfactory', 'Good', 'Excellent']
+      },
+      { 
+        id: 'firingPracticeCompleted', 
+        label: 'Firing Practice Completed', 
+        type: 'select', 
+        required: true,
+        options: ['YES', 'NO']
+      },
+      { 
+        id: 'remarksOfICOfficer', 
+        label: 'Remarks of I/C Officer', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'remarksOfCommandant', 
+        label: 'Remarks of Commandant', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'remarksOfDIG', 
+        label: 'Remarks of DIG', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'adgpOrders', 
+        label: 'ADGP Orders', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'dateOfBirth', 
+        label: 'Date of Birth', 
+        type: 'date', 
+        required: true 
+      },
+      { 
+        id: 'salary', 
+        label: 'Salary', 
+        type: 'number', 
+        required: true 
+      },
+      { 
+        id: 'qualification', 
+        label: 'Qualification', 
+        type: 'text', 
+        required: true 
+      },
+      { 
+        id: 'acceptanceOfSelfAppraisalReport', 
+        label: 'Acceptance of Self Appraisal Report – Part-I', 
+        type: 'select', 
+        required: true,
+        options: ['Accepted', 'Not Accepted']
+      },
+      { 
+        id: 'assessmentOfPerformance', 
+        label: 'Assessment of Officer\'s Performance During the Year', 
+        type: 'select', 
+        required: true,
+        options: ['Satisfactory', 'Good', 'Excellent']
+      },
+      { 
+        id: 'reportingOfficerDate', 
+        label: 'Reporting Officer - Date', 
+        type: 'date', 
+        required: false 
+      },
+      { 
+        id: 'reportingOfficerName', 
+        label: 'Reporting Officer - Name', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s\\.]+$'
+      },
+      { 
+        id: 'reportingOfficerDesignation', 
+        label: 'Reporting Officer - Designation', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s]+$'
+      },
+      { 
+        id: 'countersigningOfficerDate', 
+        label: 'Countersigning Officer - Date', 
+        type: 'text', 
+        required: false 
+      },
+      { 
+        id: 'countersigningOfficerName', 
+        label: 'Countersigning Officer - Name', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s\\.]+$'
+      },
+      { 
+        id: 'countersigningOfficerDesignation', 
+        label: 'Countersigning Officer - Designation', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s]+$'
+      },
+      { 
+        id: 'countersigningOfficerRemarks', 
+        label: 'Countersigning Officer - Remarks', 
+        type: 'textarea', 
+        required: true 
+      },
+      { 
+        id: 'hodOpinion', 
+        label: 'Head of Department Opinion', 
+        type: 'text', 
+        required: true 
+      },
+      { 
+        id: 'hodDate', 
+        label: 'Head of Department - Date', 
+        type: 'date', 
+        required: false 
+      },
+      { 
+        id: 'hodName', 
+        label: 'Head of Department - Name', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s\\.]+$'
+      },
+      { 
+        id: 'hodDesignation', 
+        label: 'Head of Department - Designation', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s]+$'
+      }
     ],
-    validationRules: []
+    validationRules: [
+      {
+        field: 'serviceClassCategory',
+        rule: 'format',
+        message: 'Must be a valid designation like Reserve Inspector of Police'
+      },
+      {
+        field: 'nameOfProbationer',
+        rule: 'format',
+        message: 'Should only contain alphabets and valid initials'
+      },
+      {
+        field: 'leaveTakenDuringProbation',
+        rule: 'format',
+        message: 'Must include From and To dates or NIL'
+      },
+      {
+        field: 'testsToBePassedDuringProbation',
+        rule: 'nil_or_content',
+        message: 'If none, value must be NIL else define the tests which need to be passed'
+      },
+      {
+        field: 'punishmentsDuringProbation',
+        rule: 'nil_or_content',
+        message: 'If none, value must be NIL else define the punishment during probation'
+      },
+      {
+        field: 'pendingPROE',
+        rule: 'nil_or_content',
+        message: 'If none, value must be NIL else mention the full reasoning of the pending PR or OE'
+      },
+      {
+        field: 'characterAndConduct',
+        rule: 'enum',
+        message: 'Common values are: Satisfactory, Good, Excellent'
+      },
+      {
+        field: 'firingPracticeCompleted',
+        rule: 'enum',
+        message: 'Accepted values: YES, NO'
+      },
+      {
+        field: 'salary',
+        rule: 'positive_number',
+        message: 'Salary must be a positive number in Indian Rupees'
+      },
+      {
+        field: 'qualification',
+        rule: 'format',
+        message: 'Degree with specialization. Example: B.Tech (CSE)'
+      }
+    ]
   },
   {
     id: 'punishment_letter',
