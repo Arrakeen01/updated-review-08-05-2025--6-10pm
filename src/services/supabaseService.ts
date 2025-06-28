@@ -21,20 +21,6 @@ const supabase = hasSupabaseCredentials ? createClient(supabaseUrl, supabaseKey,
   auth: {
     persistSession: false,
     autoRefreshToken: false
-  },
-  global: {
-    fetch: (url, options = {}) => {
-      console.log('Supabase fetch request:', url);
-      return fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-        }
-      }).catch(error => {
-        console.error('Supabase fetch error:', error);
-        throw error;
-      });
-    }
   }
 }) : null;
 
@@ -508,8 +494,7 @@ class SupabaseService {
       const { data, error } = await supabase!
         .from('documents')
         .select('count')
-        .limit(1)
-        .single();
+        .limit(1);
 
       const isConnected = !error;
       console.log('Supabase connection status:', isConnected);
