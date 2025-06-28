@@ -22,21 +22,97 @@ const defaultDocumentTypes: DocumentType[] = [
     name: 'Earned Leave Letter',
     category: 'Leave',
     template: [
-      { id: 'applicantName', label: 'Applicant Name', type: 'text', required: true },
-      { id: 'employeeId', label: 'Employee ID', type: 'text', required: true },
-      { id: 'department', label: 'Department', type: 'text', required: true },
-      { id: 'designation', label: 'Designation', type: 'text', required: true },
-      { id: 'leaveType', label: 'Leave Type', type: 'select', required: true, options: ['Earned Leave', 'Annual Leave', 'Vacation Leave'] },
-      { id: 'startDate', label: 'Leave Start Date', type: 'date', required: true },
-      { id: 'endDate', label: 'Leave End Date', type: 'date', required: true },
-      { id: 'duration', label: 'Duration (Days)', type: 'number', required: true },
-      { id: 'reason', label: 'Reason for Leave', type: 'textarea', required: true },
-      { id: 'supervisorName', label: 'Supervisor Name', type: 'text', required: true },
-      { id: 'applicationDate', label: 'Application Date', type: 'date', required: true },
-      { id: 'contactNumber', label: 'Contact Number', type: 'text', required: false },
-      { id: 'emergencyContact', label: 'Emergency Contact', type: 'text', required: false }
+      { 
+        id: 'rcNo', 
+        label: 'R c No.', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Z0-9]+/[0-9]{1,4}/[0-9]{4}$'
+      },
+      { 
+        id: 'hodNo', 
+        label: 'H.O.D No.', 
+        type: 'text', 
+        required: true,
+        validation: '^[0-9]{1,4}/[0-9]{4}$'
+      },
+      { 
+        id: 'serviceNo', 
+        label: 'PC No. or HC No or ARSI No', 
+        type: 'text', 
+        required: false,
+        validation: '^(PC-|HC|ARSI)[0-9]{1,4}$'
+      },
+      { 
+        id: 'name', 
+        label: 'Name', 
+        type: 'text', 
+        required: true,
+        validation: '^[A-Za-z\\s\\.]+$'
+      },
+      { 
+        id: 'date', 
+        label: 'Date', 
+        type: 'date', 
+        required: true 
+      },
+      { 
+        id: 'numberOfDays', 
+        label: 'Number of Days', 
+        type: 'number', 
+        required: true 
+      },
+      { 
+        id: 'leaveFromDate', 
+        label: 'Leave From Date', 
+        type: 'date', 
+        required: true 
+      },
+      { 
+        id: 'leaveToDate', 
+        label: 'Leave To Date', 
+        type: 'date', 
+        required: true 
+      },
+      { 
+        id: 'leaveReason', 
+        label: 'Leave Reason', 
+        type: 'textarea', 
+        required: true 
+      }
     ],
-    validationRules: []
+    validationRules: [
+      {
+        field: 'rcNo',
+        rule: 'format',
+        message: 'R c No. must be in format: Section Code/Serial Number/Year (e.g., B4/149/2020)'
+      },
+      {
+        field: 'hodNo',
+        rule: 'format', 
+        message: 'H.O.D No. must be in format: Serial Number/Year (e.g., 72/2020)'
+      },
+      {
+        field: 'serviceNo',
+        rule: 'conditional_required',
+        message: 'Service number is required for PC, HC, or ARSI designations'
+      },
+      {
+        field: 'name',
+        rule: 'format',
+        message: 'Name must contain only alphabets, spaces, and periods'
+      },
+      {
+        field: 'numberOfDays',
+        rule: 'range',
+        message: 'Number of days must be between 1 and 365'
+      },
+      {
+        field: 'leaveToDate',
+        rule: 'date_after',
+        message: 'Leave To Date must be after Leave From Date'
+      }
+    ]
   },
   {
     id: 'medical_leave',
