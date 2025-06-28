@@ -7,31 +7,31 @@ const referenceStamps = [
     id: 'officer_commanding',
     name: 'Officer Commanding Stamp',
     description: 'Official stamp of the Officer Commanding, 14th Bn A.P.S.P. Ananthapuramu',
-    imageUrl: '/stamps/officer_commanding.png'
+    imageUrl: 'https://i.ibb.co/Jt2kDPQ/officer-commanding.png'
   },
   {
     id: 'commissioner_police',
     name: 'Commissioner of Police Stamp',
     description: 'Official stamp of the Additional Commissioner of Police, Vijayawada City',
-    imageUrl: '/stamps/commissioner_police.png'
+    imageUrl: 'https://i.ibb.co/Qf4HGBM/commissioner-police.png'
   },
   {
     id: 'director_general',
     name: 'Director General Stamp',
     description: 'Official stamp of the Additional Director General of Police, APSP Battalions',
-    imageUrl: '/stamps/director_general.png'
+    imageUrl: 'https://i.ibb.co/Jt2kDPQ/director-general.png'
   },
   {
     id: 'apsp_head_office',
     name: 'APSP Head Office Stamp',
     description: 'Official stamp of the APSP Head Office, Mangalagiri',
-    imageUrl: '/stamps/apsp_head_office.png'
+    imageUrl: 'https://i.ibb.co/Qf4HGBM/apsp-head-office.png'
   },
   {
     id: 'igp_apsp',
     name: 'IGP APSP Stamp',
     description: 'Official stamp of the Inspector General of Police, APSP Battalions',
-    imageUrl: '/stamps/igp_apsp.png'
+    imageUrl: 'https://i.ibb.co/Jt2kDPQ/igp-apsp.png'
   }
 ];
 
@@ -197,13 +197,14 @@ class StampVerificationService {
       };
       
       // In a real implementation, we would extract the stamp image from the document
-      // For this demo, we'll just use the original image data
+      // For this demo, we'll just use a reference stamp image
+      const randomStampIndex = Math.floor(Math.random() * referenceStamps.length);
       
       return {
         isPresent: true,
         confidence: 0.75 + (Math.random() * 0.2),
         boundingBox,
-        imageData
+        imageData: referenceStamps[randomStampIndex].imageUrl
       };
     } catch (error) {
       console.error('Stamp detection failed:', error);
@@ -237,7 +238,7 @@ class StampVerificationService {
         confidence,
         matchedReference: matchedReference.id,
         boundingBox,
-        imageData: stampImageData
+        imageData: matchedReference.imageUrl
       };
     } catch (error) {
       console.error('Stamp matching failed:', error);
@@ -276,13 +277,13 @@ class StampVerificationService {
       };
       
       // In a real implementation, we would extract the signature image from the document
-      // For this demo, we'll just use the original image data
+      // For this demo, we'll just use a placeholder image
       
       return {
         isPresent: true,
         confidence: 0.8 + (Math.random() * 0.15),
         boundingBox,
-        imageData
+        imageData: "https://i.ibb.co/Qf4HGBM/signature-example.png"
       };
     } catch (error) {
       console.error('Signature detection failed:', error);
