@@ -12,8 +12,6 @@ import { UserManagement } from './components/Admin/UserManagement';
 import { TemplateManager } from './components/Admin/TemplateManager';
 import { QRUpload } from './components/Mobile/QRUpload';
 import { AuditLog } from './components/Security/AuditLog';
-import { DocumentSearch } from './components/Documents/DocumentSearch';
-import { JSONAnalyzer } from './components/Documents/JSONAnalyzer';
 
 function AppContent() {
   const { user } = useAuth();
@@ -27,10 +25,6 @@ function AppContent() {
     switch (currentView) {
       case 'upload':
         return <UploadInterface />;
-      case 'json-analyzer':
-        return <JSONAnalyzer />;
-      case 'search':
-        return <DocumentSearch />;
       case 'records':
         return <RecordsList />;
       case 'documents':

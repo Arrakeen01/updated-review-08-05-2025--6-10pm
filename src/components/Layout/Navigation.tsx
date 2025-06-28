@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, Users, BarChart3, Settings, FolderOpen, Smartphone, Shield, Search, Database, Brain } from 'lucide-react';
+import { Upload, Users, BarChart3, Settings, FolderOpen, Smartphone, Shield, Database } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface NavigationProps {
@@ -12,8 +12,6 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
 
   const navigationItems = [
     { id: 'upload', label: 'Upload Documents', icon: Upload, roles: ['clerk', 'admin'] },
-    { id: 'json-analyzer', label: 'JSON Analyzer', icon: Brain, roles: ['clerk', 'admin'] },
-    { id: 'search', label: 'Search Documents', icon: Search, roles: ['clerk', 'admin'] },
     { id: 'documents', label: 'All Documents', icon: Database, roles: ['clerk', 'admin'] },
     { id: 'records', label: 'Records View', icon: FolderOpen, roles: ['clerk', 'admin'] },
     { id: 'mobile', label: 'Mobile Upload', icon: Smartphone, roles: ['clerk', 'admin'] },
