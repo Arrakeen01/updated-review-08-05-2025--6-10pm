@@ -96,27 +96,18 @@ export function QRUpload() {
     }
   };
 
-  const revokeQRCode = (id: string) => {
-    qrService.revokeQRCode(id);
-    setQrCodes(prev => prev.filter(qr => qr.id !== id));
-  };
-
-  const getQRTypeIcon = (type: string) => {
-    switch (type) {
-      case 'document_upload': return <Upload className="h-4 w-4" />;
-      case 'folder_access': return <QrCode className="h-4 w-4" />;
-      case 'workflow_action': return <CheckCircle className="h-4 w-4" />;
-      default: return <QrCode className="h-4 w-4" />;
+  const revokeQRCode = (sessionId: string) => {
+    qrUploadService.revokeSession(sessionId);
+    setQrSessions(prev => prev.filter(session => session.sessionId !== sessionId));
+    
+    if (realtimeChannel) {
+      realtimeChannel.unsubscribe();
+      setRealtimeChannel(null);
     }
   };
 
-  const getQRTypeLabel = (type: string) => {
-    switch (type) {
-      case 'document_upload': return 'Document Upload';
-      case 'folder_access': return 'Folder Access';
-      case 'workflow_action': return 'Workflow Action';
-      default: return 'Unknown';
-    }
+  const refreshUploadedFiles = () => {
+    loadUploadedFiles();
   };
 
   const isExpired = (expiresAt: string) => {
