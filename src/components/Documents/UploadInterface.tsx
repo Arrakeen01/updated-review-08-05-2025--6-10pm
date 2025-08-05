@@ -308,21 +308,21 @@ export function UploadInterface() {
           }
         },
         metadata: {
-          processingMethod: 'azure-ai-openai-template-mapped',
+          processingMethod: 'huggingface-openai-template-mapped',
           layout: [],
-          tables: selectedTempDoc.azureAIResult.tables || [],
+          tables: selectedTempDoc.huggingFaceResult.tables || [],
           documentMetadata: {
             templateMatched: selectedTempDoc.suggestedTemplate?.name,
             templateConfidence: selectedTempDoc.confidence,
             fieldConfidences: {},
-            azureProcessed: true,
+            huggingFaceProcessed: true,
             openAIAnalyzed: true,
             templateMapped: true,
             fieldMappingDetails: selectedTempDoc.openAIAnalysis.fieldMappingDetails
           },
           boundingBoxes: [],
           // Add stamp and signature verification data
-          stampVerification: selectedTempDoc.azureAIResult.stampVerification || {
+          stampVerification: selectedTempDoc.huggingFaceResult.stampVerification || {
             isPresent: Math.random() > 0.2, // Simulate stamp detection
             confidence: 0.7 + Math.random() * 0.25,
             matchedReference: referenceStamps[Math.floor(Math.random() * referenceStamps.length)],
@@ -333,7 +333,7 @@ export function UploadInterface() {
               height: Math.floor(Math.random() * 100) + 100
             }
           },
-          signatureVerification: selectedTempDoc.azureAIResult.signatureVerification || {
+          signatureVerification: selectedTempDoc.huggingFaceResult.signatureVerification || {
             isPresent: Math.random() > 0.1, // Simulate signature detection
             confidence: 0.8 + Math.random() * 0.15,
             boundingBox: {
