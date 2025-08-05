@@ -16,7 +16,7 @@ export function UploadInterface() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [processingStage, setProcessingStage] = useState<string>('');
-  const [azureServiceHealth, setAzureServiceHealth] = useState<boolean | null>(null);
+  const [huggingFaceServiceHealth, setHuggingFaceServiceHealth] = useState<boolean | null>(null);
   const [openAIServiceHealth, setOpenAIServiceHealth] = useState<boolean | null>(null);
   const [supabaseHealth, setSupabaseHealth] = useState<boolean | null>(null);
   const [temporaryDocuments, setTemporaryDocuments] = useState<TemporaryDocument[]>([]);
