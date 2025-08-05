@@ -12,42 +12,40 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function QRUpload() {
   const { user } = useAuth();
-  const [qrCodes, setQrCodes] = useState<Array<{ id: string; qrCodeUrl: string; data: QRCodeData }>>([]);
+  const [qrSessions, setQrSessions] = useState<Array<{ sessionId: string; qrCodeUrl: string; expiresAt: string }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; name: string; url: string; uploadedAt: string }>>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
-      loadActiveQRCodes();
       loadUploadedFiles();
     }
+    
+    return () => {
+      if (realtimeChannel) {
+        realtimeChannel.unsubscribe();
+      }
+    };
   }, [user]);
 
-  const loadActiveQRCodes = async () => {
-    if (!user) return;
-    
-    const activeQRs = qrService.getActiveQRCodes(user.id);
-    const qrCodesWithUrls = await Promise.all(
-      activeQRs.map(async (qr) => {
-        const { qrCodeUrl } = await qrService.generateQRCode({
-          type: qr.type,
-          userId: qr.userId,
-          expiresAt: qr.expiresAt,
-          permissions: qr.permissions,
-          documentId: qr.documentId,
-          folderId: qr.folderId,
-          workflowId: qr.workflowId
-        });
-        return { id: qr.id, qrCodeUrl, data: qr };
-      })
-    );
-    setQrCodes(qrCodesWithUrls);
-  };
+  const loadUploadedFiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('uploads')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-  const loadUploadedFiles = () => {
-    // Load uploaded files from UploadThing
-    const files = uploadthingService.getUploadedFiles();
-    setUploadedFiles(files);
+      if (error) {
+        console.error('Failed to load uploads:', error);
+        return;
+      }
+
+      setUploadedFiles(data || []);
+    } catch (error) {
+      console.error('Error loading uploaded files:', error);
+    }
   };
 
   const generateUploadQR = async () => {
