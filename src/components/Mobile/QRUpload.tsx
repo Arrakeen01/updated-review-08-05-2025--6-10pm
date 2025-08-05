@@ -121,7 +121,7 @@ export function QRUpload() {
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Mobile QR Upload</h2>
             <p className="text-sm text-gray-600 mt-1">
-              Generate QR codes for secure mobile document upload via UploadThing
+              Generate QR codes for secure mobile document upload via Supabase
             </p>
           </div>
           <button
@@ -150,53 +150,53 @@ export function QRUpload() {
                   <li>Open your mobile camera or QR scanner app</li>
                   <li>Scan the QR code to open the secure upload interface</li>
                   <li>Take photos or select documents from your device</li>
-                  <li>Documents will be securely uploaded via UploadThing and processed</li>
+                  <li>Documents will be uploaded to Supabase and processed with Hugging Face AI</li>
                 </ol>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Active QR Codes */}
+        {/* Active QR Sessions */}
         <div className="space-y-4 mb-8">
-          <h3 className="text-lg font-medium text-gray-900">Active QR Codes</h3>
+          <h3 className="text-lg font-medium text-gray-900">Active QR Sessions</h3>
           
-          {qrCodes.length === 0 ? (
+          {qrSessions.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg">
               <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No active QR codes</p>
+              <p className="text-gray-500">No active QR sessions</p>
               <p className="text-sm text-gray-400">Generate a QR code to enable mobile uploads</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {qrCodes.map((qr) => (
-                <div key={qr.id} className="border border-gray-200 rounded-lg p-4">
+              {qrSessions.map((session) => (
+                <div key={session.sessionId} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      {getQRTypeIcon(qr.data.type)}
+                      <Upload className="h-4 w-4" />
                       <span className="text-sm font-medium text-gray-900">
-                        {getQRTypeLabel(qr.data.type)}
+                        Document Upload
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      {isExpired(qr.data.expiresAt) ? (
+                      {isExpired(session.expiresAt) ? (
                         <AlertCircle className="h-4 w-4 text-red-500" />
                       ) : (
                         <CheckCircle className="h-4 w-4 text-green-500" />
                       )}
                       <span className={`text-xs px-2 py-1 rounded-full ${
-                        isExpired(qr.data.expiresAt)
+                        isExpired(session.expiresAt)
                           ? 'bg-red-100 text-red-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
-                        {isExpired(qr.data.expiresAt) ? 'Expired' : 'Active'}
+                        {isExpired(session.expiresAt) ? 'Expired' : 'Active'}
                       </span>
                     </div>
                   </div>
 
                   <div className="bg-white border rounded-lg p-3 mb-3">
                     <img
-                      src={qr.qrCodeUrl}
+                      src={session.qrCodeUrl}
                       alt="QR Code"
                       className="w-full h-32 object-contain"
                     />
@@ -206,12 +206,12 @@ export function QRUpload() {
                     <div className="flex items-center space-x-1">
                       <Clock className="h-3 w-3" />
                       <span>
-                        Expires: {new Date(qr.data.expiresAt).toLocaleDateString()} at{' '}
-                        {new Date(qr.data.expiresAt).toLocaleTimeString()}
+                        Expires: {new Date(session.expiresAt).toLocaleDateString()} at{' '}
+                        {new Date(session.expiresAt).toLocaleTimeString()}
                       </span>
                     </div>
                     <div>
-                      <span>Permissions: {qr.data.permissions.join(', ')}</span>
+                      <span>Session ID: {session.sessionId.substring(0, 20)}...</span>
                     </div>
                   </div>
 
@@ -219,8 +219,8 @@ export function QRUpload() {
                     <button
                       onClick={() => {
                         const link = document.createElement('a');
-                        link.download = `qr-upload-${qr.id}.png`;
-                        link.href = qr.qrCodeUrl;
+                        link.download = `qr-upload-${session.sessionId}.png`;
+                        link.href = session.qrCodeUrl;
                         link.click();
                       }}
                       className="flex-1 px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100"
@@ -228,7 +228,7 @@ export function QRUpload() {
                       Download
                     </button>
                     <button
-                      onClick={() => revokeQRCode(qr.id)}
+                      onClick={() => revokeQRCode(session.sessionId)}
                       className="flex-1 px-3 py-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100"
                     >
                       Revoke
@@ -242,7 +242,16 @@ export function QRUpload() {
 
         {/* Uploaded Files */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900">Recent Mobile Uploads</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">Recent Mobile Uploads</h3>
+            <button
+              onClick={refreshUploadedFiles}
+              className="inline-flex items-center px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Refresh
+            </button>
+          </div>
           
           {uploadedFiles.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg">
@@ -257,20 +266,33 @@ export function QRUpload() {
                   <div className="flex items-center space-x-3">
                     <Camera className="h-5 w-5 text-gray-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{file.file_name}</p>
                       <p className="text-xs text-gray-500">
-                        Uploaded {new Date(file.uploadedAt).toLocaleString()}
+                        Uploaded {new Date(file.created_at).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Size: {(file.file_size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
                   </div>
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    View
-                  </a>
+                  <div className="flex items-center space-x-2">
+                    <div className={`px-2 py-1 text-xs rounded-full ${
+                      file.processed 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {file.processed ? 'Processed' : 'Pending'}
+                    </div>
+                    <button
+                      onClick={() => {
+                        const { data } = supabase.storage.from('uploads').getPublicUrl(file.file_path);
+                        window.open(data.publicUrl, '_blank');
+                      }}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
