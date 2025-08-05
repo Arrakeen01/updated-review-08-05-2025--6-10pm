@@ -1029,7 +1029,7 @@ export function UploadInterface() {
               </div>
               <p className="text-sm text-gray-500 mb-4">
                 Scan this QR code with your mobile device to upload documents directly from your phone camera.
-                Documents will be processed with Azure AI and OpenAI with automatic template mapping and database sync.
+                Documents will be processed with Hugging Face AI and OpenAI with automatic template mapping and database sync.
               </p>
               <button
                 onClick={() => setShowQrModal(false)}
