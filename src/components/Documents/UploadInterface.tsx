@@ -275,7 +275,7 @@ export function UploadInterface() {
         templateVersion: 'v1.0',
         tags: [
           selectedTempDoc.suggestedTemplate?.id || 'unknown',
-          'azure-ai-processed',
+          'huggingface-processed',
           'openai-analyzed',
           'clerk-approved',
           'template-mapped'
