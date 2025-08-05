@@ -593,9 +593,9 @@ export function UploadInterface() {
               <p className="mt-1 text-sm text-gray-500">
                 Select a document for intelligent processing with template mapping and verification
               </p>
-              {azureServiceHealth && openAIServiceHealth && (
+              {huggingFaceServiceHealth && openAIServiceHealth && (
                 <p className="mt-1 text-xs text-blue-600">
-                  Azure AI OCR + OpenAI analysis + Automatic template field mapping + Stamp & Signature Verification
+                  Hugging Face AI + OpenAI analysis + Automatic template field mapping + Stamp & Signature Verification
                 </p>
               )}
               <div className="mt-6 flex justify-center space-x-4">
