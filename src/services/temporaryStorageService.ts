@@ -21,7 +21,7 @@ class TemporaryStorageService {
   storeTemporaryDocument(
     file: File,
     extractedText: string,
-    azureAIResult: any,
+    huggingFaceResult: any,  // Changed from azureAIResult
     openAIAnalysis: any,
     userId: string
   ): string {
