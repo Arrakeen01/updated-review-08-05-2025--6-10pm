@@ -153,17 +153,17 @@ export function UploadInterface() {
     if (!user) return;
     
     setIsProcessing(true);
-    setProcessingStage('Initializing Azure AI processing...');
+    setProcessingStage('Initializing Hugging Face AI processing...');
     
     try {
-      // Step 1: Azure AI OCR processing
-      setProcessingStage('Extracting text with Azure AI...');
-      const azureResult: AzureAIResult = await azureAIService.processDocument(file, user.id);
+      // Step 1: Hugging Face document processing with Qwen/Qwen2.5-VL-7B-Instruct
+      setProcessingStage('Processing document with Hugging Face AI...');
+      const huggingFaceResult: HuggingFaceResult = await huggingFaceService.processDocument(file, user.id);
 
-      // Step 2: OpenAI analysis with template matching
+      // Step 2: OpenAI analysis with template matching (if needed for additional processing)
       setProcessingStage('Analyzing document and mapping fields with OpenAI...');
       const openAIResult: OpenAIAnalysisResult = await openAIService.analyzeDocument(
-        azureResult.extractedText,
+        huggingFaceResult.extractedText,
         documentTypes,
         user.id
       );
@@ -172,8 +172,8 @@ export function UploadInterface() {
       setProcessingStage('Storing for review...');
       const tempDocId = temporaryStorageService.storeTemporaryDocument(
         file,
-        azureResult.extractedText,
-        azureResult,
+        huggingFaceResult.extractedText,
+        huggingFaceResult,
         openAIResult,
         user.id
       );
