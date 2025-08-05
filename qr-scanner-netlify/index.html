@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPARK QR Scanner - Mobile Document Upload</title>
+    <meta name="description" content="Secure mobile document upload for SPARK Document Management System">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        .scanner-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        #qr-reader {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        #qr-reader__dashboard_section_csr {
+            display: none !important;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+                <i data-lucide="shield" class="text-white w-8 h-8"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">S.P.A.R.K.</h1>
+            <p class="text-lg text-gray-600">Secure Police Archival & Record Keeper</p>
+            <p class="text-sm text-gray-500 mt-2">Mobile QR Scanner & Document Upload</p>
+        </div>
+
+        <!-- Scanner Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 scanner-container">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-3">
+                    <i data-lucide="qr-code" class="text-blue-600 w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">Scan QR Code</h2>
+                <p class="text-gray-600 text-sm">Point your camera at the QR code to start secure document upload</p>
+            </div>
+
+            <!-- QR Code Scanner -->
+            <div id="scanner-section" class="space-y-4">
+                <div id="qr-reader" class="rounded-lg overflow-hidden border-2 border-gray-200"></div>
+                
+                <div class="flex justify-center space-x-4">
+                    <button id="start-scanner" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <i data-lucide="camera" class="w-4 h-4 mr-2"></i>
+                        Start Scanner
+                    </button>
+                    <button id="stop-scanner" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 hidden">
+                        <i data-lucide="square" class="w-4 h-4 mr-2"></i>
+                        Stop Scanner
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="text-center hidden">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-600">Processing QR code...</p>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-state" class="text-center hidden fade-in">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                    <i data-lucide="check-circle" class="text-green-600 w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">QR Code Scanned Successfully!</h3>
+                <p class="text-gray-600 mb-4">Redirecting to secure document upload...</p>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p class="text-sm text-green-800">
+                        <strong>Session:</strong> <span id="session-id"></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="text-center hidden">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                    <i data-lucide="alert-circle" class="text-red-600 w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Scanner Error</h3>
+                <p class="text-gray-600 mb-4" id="error-message">Unable to access camera. Please check permissions.</p>
+                <button id="retry-scanner" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                    Try Again
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 scanner-container">
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <i data-lucide="info" class="text-blue-600 w-5 h-5 mt-0.5"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-blue-900 mb-2">How to use:</h3>
+                    <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                        <li>Click "Start Scanner" to activate your camera</li>
+                        <li>Point your camera at the QR code displayed on the PC</li>
+                        <li>Hold steady until the code is recognized</li>
+                        <li>You'll be automatically redirected to the upload page</li>
+                    </ol>
+                    <div class="mt-4 p-3 bg-blue-100 rounded-lg">
+                        <p class="text-xs text-blue-700">
+                            <strong>Note:</strong> This app requires camera permissions to scan QR codes. 
+                            Make sure to allow camera access when prompted.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-sm text-gray-500">
+            <p>&copy; 2025 Andhra Pradesh Police Department</p>
+            <p class="mt-1">Secure Document Management System</p>
+        </div>
+    </div>
+
+    <script>
+        class QRScanner {
+            constructor() {
+                this.html5QrCode = null;
+                this.isScanning = false;
+                this.initializeElements();
+                this.bindEvents();
+                this.initializeLucideIcons();
+            }
+
+            initializeElements() {
+                this.elements = {
+                    scannerSection: document.getElementById('scanner-section'),
+                    loadingState: document.getElementById('loading-state'),
+                    successState: document.getElementById('success-state'),
+                    errorState: document.getElementById('error-state'),
+                    startButton: document.getElementById('start-scanner'),
+                    stopButton: document.getElementById('stop-scanner'),
+                    retryButton: document.getElementById('retry-scanner'),
+                    sessionId: document.getElementById('session-id'),
+                    errorMessage: document.getElementById('error-message')
+                };
+            }
+
+            initializeLucideIcons() {
+                // Initialize Lucide icons
+                lucide.createIcons();
+            }
+
+            bindEvents() {
+                this.elements.startButton.addEventListener('click', () => this.startScanner());
+                this.elements.stopButton.addEventListener('click', () => this.stopScanner());
+                this.elements.retryButton.addEventListener('click', () => this.resetAndRetry());
+            }
+
+            showState(stateName) {
+                const states = ['scannerSection', 'loadingState', 'successState', 'errorState'];
+                states.forEach(state => {
+                    if (state === stateName) {
+                        this.elements[state].classList.remove('hidden');
+                    } else {
+                        this.elements[state].classList.add('hidden');
+                    }
+                });
+            }
+
+            async startScanner() {
+                try {
+                    this.showLoading();
+                    
+                    // Initialize QR scanner
+                    this.html5QrCode = new Html5Qrcode("qr-reader");
+                    
+                    // Get camera devices
+                    const devices = await Html5Qrcode.getCameras();
+                    
+                    if (devices && devices.length) {
+                        // Use back camera if available, otherwise use first camera
+                        const cameraId = devices.find(device => 
+                            device.label.toLowerCase().includes('back') || 
+                            device.label.toLowerCase().includes('rear')
+                        )?.id || devices[0].id;
+
+                        // Start scanning
+                        await this.html5QrCode.start(
+                            cameraId,
+                            {
+                                fps: 10,
+                                qrbox: { width: 250, height: 250 }
+                            },
+                            (decodedText, decodedResult) => {
+                                this.onQRCodeScanned(decodedText, decodedResult);
+                            },
+                            (errorMessage) => {
+                                // Ignore scan errors, they're normal
+                            }
+                        );
+
+                        this.isScanning = true;
+                        this.showScannerActive();
+                    } else {
+                        throw new Error('No cameras found on this device');
+                    }
+                } catch (error) {
+                    console.error('Scanner start error:', error);
+                    this.showError(error.message || 'Unable to start camera scanner');
+                }
+            }
+
+            async stopScanner() {
+                if (this.html5QrCode && this.isScanning) {
+                    try {
+                        await this.html5QrCode.stop();
+                        this.html5QrCode.clear();
+                        this.isScanning = false;
+                        this.showScannerInactive();
+                    } catch (error) {
+                        console.error('Error stopping scanner:', error);
+                    }
+                }
+            }
+
+            showLoading() {
+                this.showState('loadingState');
+            }
+
+            showScannerActive() {
+                this.showState('scannerSection');
+                this.elements.startButton.classList.add('hidden');
+                this.elements.stopButton.classList.remove('hidden');
+            }
+
+            showScannerInactive() {
+                this.showState('scannerSection');
+                this.elements.startButton.classList.remove('hidden');
+                this.elements.stopButton.classList.add('hidden');
+            }
+
+            showError(message) {
+                this.elements.errorMessage.textContent = message;
+                this.showState('errorState');
+            }
+
+            showSuccess(sessionId) {
+                this.elements.sessionId.textContent = sessionId;
+                this.showState('successState');
+            }
+
+            async onQRCodeScanned(decodedText, decodedResult) {
+                console.log('QR Code scanned:', decodedText);
+                
+                try {
+                    // Stop the scanner
+                    await this.stopScanner();
+                    
+                    // Show loading
+                    this.showLoading();
+                    
+                    // Parse the QR code URL
+                    const url = new URL(decodedText);
+                    const sessionId = url.searchParams.get('session');
+                    
+                    if (!sessionId) {
+                        throw new Error('Invalid QR code: No session ID found');
+                    }
+                    
+                    // Show success briefly
+                    this.showSuccess(sessionId);
+                    
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        // **IMPORTANT**: Replace this URL with your main application URL
+                        // When deploying to Netlify, change localhost:5173 to your actual domain
+                        const baseUrl = 'http://localhost:5173'; // <-- CHANGE THIS URL
+                        const redirectUrl = `${baseUrl}/mobile-upload?session=${sessionId}`;
+                        
+                        console.log('Redirecting to:', redirectUrl);
+                        window.location.href = redirectUrl;
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('QR processing error:', error);
+                    this.showError(error.message || 'Invalid QR code format');
+                }
+            }
+
+            resetAndRetry() {
+                this.showScannerInactive();
+                this.startScanner();
+            }
+        }
+
+        // Initialize the QR scanner when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new QRScanner();
+        });
+
+        // Handle page visibility changes to stop scanner when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && window.qrScanner && window.qrScanner.isScanning) {
+                window.qrScanner.stopScanner();
+            }
+        });
+    </script>
+</body>
+</html>
