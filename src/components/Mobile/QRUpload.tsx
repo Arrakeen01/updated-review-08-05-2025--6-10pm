@@ -56,7 +56,7 @@ export function QRUpload() {
       const sessionId = await qrUploadService.createUploadSession(user.id, 24);
       
       // Generate QR code URL pointing to the Netlify scanner with session parameter
-      const qrScannerUrl = `https://qr-code-0123.netlify.app?session=${sessionId}`;
+      const qrScannerUrl = `https://qr-code-0123.netlify.app/?session=${sessionId}`;
       
       // Generate QR code using GoQR.me API
       const goQRApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&format=png&data=${encodeURIComponent(qrScannerUrl)}`;
