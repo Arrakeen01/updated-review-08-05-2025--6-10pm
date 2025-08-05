@@ -55,25 +55,18 @@ export function QRUpload() {
       // Create upload session
       const sessionId = await qrUploadService.createUploadSession(user.id, 24);
       
-      // Generate QR code URL pointing to mobile upload interface
-      const mobileUploadUrl = `${window.location.origin}/mobile-upload?session=${sessionId}`;
+      // Generate QR code URL pointing to the Netlify scanner with session parameter
+      const qrScannerUrl = `https://qr-code-0123.netlify.app?session=${sessionId}`;
       
-      // Generate QR code image
-      const qrCodeUrl = await QRCodeGenerator.toDataURL(mobileUploadUrl, {
-        width: 256,
-        margin: 2,
-        color: {
-          dark: '#1e3a8a',
-          light: '#ffffff'
-        }
-      });
-
+      // Generate QR code using GoQR.me API
+      const goQRApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&format=png&data=${encodeURIComponent(qrScannerUrl)}`;
+      
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
       const newQRSession = {
         sessionId,
-        qrCodeUrl,
+        qrCodeUrl: goQRApiUrl,
         expiresAt: expiresAt.toISOString()
       };
 
