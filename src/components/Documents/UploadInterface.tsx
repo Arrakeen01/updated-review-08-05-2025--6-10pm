@@ -581,7 +581,7 @@ export function UploadInterface() {
           <h2 className="text-xl font-semibold text-gray-900">Document Upload & Processing</h2>
           <div className="flex items-center space-x-2 text-xs text-blue-600">
             <Zap className="h-4 w-4" />
-            <span>Azure AI + OpenAI + Template Mapping + Stamp & Signature Verification</span>
+            <span>Hugging Face AI + OpenAI + Template Mapping + Stamp & Signature Verification</span>
           </div>
         </div>
         
