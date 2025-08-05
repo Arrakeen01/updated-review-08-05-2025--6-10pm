@@ -37,7 +37,7 @@ class TemporaryStorageService {
       id: documentId,
       originalFile: file,
       extractedText,
-      azureAIResult,
+      huggingFaceResult,  // Changed from azureAIResult
       openAIAnalysis,
       suggestedTemplate: openAIAnalysis.templateMatch,
       extractedFields: completeFields,
