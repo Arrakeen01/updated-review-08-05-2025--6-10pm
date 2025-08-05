@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { QrCode, Smartphone, Upload, Clock, CheckCircle, AlertCircle, Camera, RefreshCw, Eye } from 'lucide-react';
-import QRCodeGenerator from 'qrcode';
 import { qrUploadService } from '../../services/qrUploadService';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../../contexts/AuthContext';
