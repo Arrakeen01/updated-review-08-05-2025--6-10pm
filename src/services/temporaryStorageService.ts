@@ -4,7 +4,7 @@ interface TemporaryDocument {
   id: string;
   originalFile: File;
   extractedText: string;
-  azureAIResult: any;
+  huggingFaceResult: any;  // Changed from azureAIResult
   openAIAnalysis: any;
   suggestedTemplate: any;
   extractedFields: Record<string, any>;
