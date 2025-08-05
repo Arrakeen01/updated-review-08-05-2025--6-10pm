@@ -504,15 +504,15 @@ export function UploadInterface() {
     <div className="space-y-6">
       {/* Service Status */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`rounded-lg p-4 ${getServiceStatusColor(azureServiceHealth)}`}>
+        <div className={`rounded-lg p-4 ${getServiceStatusColor(huggingFaceServiceHealth)}`}>
           <div className="flex items-center">
-            <Zap className={`h-5 w-5 mr-2 ${getServiceStatusIcon(azureServiceHealth)}`} />
+            <Zap className={`h-5 w-5 mr-2 ${getServiceStatusIcon(huggingFaceServiceHealth)}`} />
             <div>
-              <p className={`text-sm font-medium ${getServiceStatusIcon(azureServiceHealth).replace('text-', 'text-')}`}>
-                {getServiceStatusText(azureServiceHealth, 'Azure AI')}
+              <p className={`text-sm font-medium ${getServiceStatusIcon(huggingFaceServiceHealth).replace('text-', 'text-')}`}>
+                {getServiceStatusText(huggingFaceServiceHealth, 'Hugging Face AI')}
               </p>
-              <p className={`text-xs ${getServiceStatusIcon(azureServiceHealth).replace('text-', 'text-').replace('600', '700')}`}>
-                {azureServiceHealth === null ? 'Verifying service connection...' : azureServiceHealth ? 'Ready for OCR processing' : 'OCR service unavailable'}
+              <p className={`text-xs ${getServiceStatusIcon(huggingFaceServiceHealth).replace('text-', 'text-').replace('600', '700')}`}>
+                {huggingFaceServiceHealth === null ? 'Verifying service connection...' : huggingFaceServiceHealth ? 'Ready for document processing' : 'AI service unavailable'}
               </p>
             </div>
           </div>
