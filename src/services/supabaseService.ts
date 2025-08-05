@@ -3,9 +3,9 @@ import { securityService } from './securityService';
 import { StoredDocument } from './databaseService';
 import { DocumentType } from '../types';
 
-// Supabase Configuration - Add your credentials here
-const supabaseUrl = 'https://your-project-ref.supabase.co';
-const supabaseKey = 'your-anon-key-here';
+// Supabase Configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zklfntkdyzutyilpppsj.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprbGZudGtkeXl1dHlpbHBwcHNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwOTQ2MzYsImV4cCI6MjA2NjY3MDYzNn0.CXT7ho3QhJCMZKHvdYxLDUwsKwXConG4cqu76mUM__k';
 
 // Check if Supabase credentials are available and not placeholder values
 const hasSupabaseCredentials = supabaseUrl && supabaseKey && 
