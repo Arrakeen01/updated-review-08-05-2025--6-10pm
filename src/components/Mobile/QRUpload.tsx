@@ -53,34 +53,41 @@ export function QRUpload() {
     
     setIsGenerating(true);
     try {
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
-
-      // Generate upload URL with UploadThing
-      const uploadUrl = await uploadthingService.generateUploadUrl();
-
-      const { id, qrCodeUrl } = await qrService.generateQRCode({
-        type: 'document_upload',
-        userId: user.id,
-        expiresAt: expiresAt.toISOString(),
-        permissions: ['document.create'],
-        uploadUrl
+      // Create upload session
+      const sessionId = await qrUploadService.createUploadSession(user.id, 24);
+      
+      // Generate QR code URL pointing to mobile upload interface
+      const mobileUploadUrl = `${window.location.origin}/mobile-upload?session=${sessionId}`;
+      
+      // Generate QR code image
+      const qrCodeUrl = await QRCodeGenerator.toDataURL(mobileUploadUrl, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#1e3a8a',
+          light: '#ffffff'
+        }
       });
 
-      const newQR = {
-        id,
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      const newQRSession = {
+        sessionId,
         qrCodeUrl,
-        data: {
-          id,
-          type: 'document_upload' as const,
-          userId: user.id,
-          expiresAt: expiresAt.toISOString(),
-          permissions: ['document.create'],
-          uploadUrl
-        }
+        expiresAt: expiresAt.toISOString()
       };
 
-      setQrCodes(prev => [...prev, newQR]);
+      setQrSessions(prev => [...prev, newQRSession]);
+
+      // Set up real-time listener for this session
+      const channel = qrUploadService.subscribeToSessionUploads(sessionId, (payload) => {
+        console.log('New upload detected:', payload);
+        loadUploadedFiles(); // Refresh the upload list
+      });
+      
+      setRealtimeChannel(channel);
+
     } catch (error) {
       console.error('Failed to generate QR code:', error);
       alert('Failed to generate QR code. Please try again.');
