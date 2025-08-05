@@ -140,7 +140,7 @@ export function QRUpload() {
                 <ol className="list-decimal list-inside space-y-1">
                   <li>Generate a QR code using the button above</li>
                   <li>Open your mobile camera or QR scanner app</li>
-                  <li>Scan the QR code to open the secure upload interface</li>
+                  <li>Scan the QR code to open https://qr-code-0123.netlify.app/</li>
                   <li>Take photos or select documents from your device</li>
                   <li>Documents will be uploaded to Supabase and processed with Hugging Face AI</li>
                 </ol>
