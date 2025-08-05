@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPARK Upload Flow - Real-Time Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">📱➡️💻 Real-Time Upload Flow</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- PC Interface -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
+                    <h2 class="text-xl font-semibold">PC Interface (Real-Time)</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-blue-900">1. Generate QR Code</h3>
+                        <p class="text-sm text-blue-700">Creates session + sets up real-time listener</p>
+                        <div class="mt-2 w-20 h-20 bg-gray-300 rounded flex items-center justify-center">
+                            <span class="text-xs">QR Code</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-green-900">4. File Appears INSTANTLY ⚡</h3>
+                        <p class="text-sm text-green-700">Supabase real-time subscription triggers</p>
+                        <div class="mt-2 bg-green-100 p-2 rounded text-xs">
+                            ✅ document.pdf - 2.3 MB<br>
+                            📅 Just now<br>
+                            🔄 Processing with HuggingFace AI...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Interface -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                    <h2 class="text-xl font-semibold">Mobile Interface</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-yellow-900">2. Scan QR Code</h3>
+                        <p class="text-sm text-yellow-700">Redirects to secure upload page</p>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-purple-900">3. Upload File</h3>
+                        <p class="text-sm text-purple-700">File saved to Supabase Storage + Database</p>
+                        <div class="mt-2 bg-purple-100 p-2 rounded text-xs">
+                            📤 Uploading to Supabase...<br>
+                            💾 Saving metadata...<br>
+                            ✅ Upload complete!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technical Details -->
+        <div class="mt-8 bg-gray-800 text-white rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">🔧 Technical Implementation</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <h3 class="font-semibold text-blue-400 mb-2">1. Supabase Storage</h3>
+                    <ul class="text-sm space-y-1">
+                        <li>• File uploaded to storage bucket</li>
+                        <li>• Public URL generated</li>
+                        <li>• Organized by session folders</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-green-400 mb-2">2. Database Record</h3>
+                    <ul class="text-sm space-y-1">
+                        <li>• Metadata stored in 'uploads' table</li>
+                        <li>• Session ID, filename, size, type</li>
+                        <li>• Processing status tracking</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-purple-400 mb-2">3. Real-Time Sync</h3>
+                    <ul class="text-sm space-y-1">
+                        <li>• Supabase real-time subscription</li>
+                        <li>• Instant PC interface update</li>
+                        <li>• No page refresh needed</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-6 bg-gray-700 rounded p-4">
+                <h3 class="font-semibold text-yellow-400 mb-2">📊 Processing Pipeline</h3>
+                <div class="text-sm">
+                    <span class="text-blue-300">Mobile Upload</span> 
+                    <span class="text-gray-400">→</span>
+                    <span class="text-green-300">Supabase Storage</span>
+                    <span class="text-gray-400">→</span>
+                    <span class="text-purple-300">Database Record</span>
+                    <span class="text-gray-400">→</span>
+                    <span class="text-yellow-300">Real-time Trigger</span>
+                    <span class="text-gray-400">→</span>
+                    <span class="text-red-300">PC Update</span>
+                    <span class="text-gray-400">→</span>
+                    <span class="text-orange-300">HuggingFace Processing</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Answer -->
+        <div class="mt-8 bg-green-50 border-l-4 border-green-500 p-6">
+            <h2 class="text-xl font-semibold text-green-900 mb-2">✅ Answer to Your Question:</h2>
+            <div class="text-green-800 space-y-2">
+                <p><strong>Will files be saved to Supabase?</strong> YES ✅</p>
+                <p><strong>Will they reflect on PC with no delay?</strong> YES ✅ - INSTANT real-time updates!</p>
+                <p><strong>Will HuggingFace process the documents?</strong> YES ✅ - Automatic AI processing after upload!</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
